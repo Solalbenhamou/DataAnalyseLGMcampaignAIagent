@@ -97,35 +97,35 @@ IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
 Provide a structured JSON analysis with the following sections. ALL VALUES MUST BE IN ENGLISH:
 
 {{
-    "resume_global": {{
-        "meilleure_campagne": "campaign name",
-        "pire_campagne": "campaign name",
-        "tendance_generale": "short description IN ENGLISH"
+    "global_summary": {{
+        "best_campaign": "campaign name",
+        "worst_campaign": "campaign name",
+        "general_trend": "short description IN ENGLISH"
     }},
-    "analyse_open_rate": {{
-        "moyenne": "X%",
-        "meilleur_sujet": "email subject",
-        "patterns_gagnants": ["pattern 1 in English", "pattern 2 in English"],
-        "patterns_perdants": ["pattern 1 in English", "pattern 2 in English"]
+    "open_rate_analysis": {{
+        "average": "X%",
+        "best_subject": "email subject",
+        "winning_patterns": ["pattern 1 in English", "pattern 2 in English"],
+        "losing_patterns": ["pattern 1 in English", "pattern 2 in English"]
     }},
-    "analyse_reply_rate": {{
-        "moyenne_email": "X%",
-        "moyenne_linkedin": "X%",
-        "facteurs_succes": ["success factor in English", "factor 2"],
-        "points_amelioration": ["improvement point in English", "point 2"]
+    "reply_rate_analysis": {{
+        "email_average": "X%",
+        "linkedin_average": "X%",
+        "success_factors": ["success factor in English", "factor 2"],
+        "improvement_points": ["improvement point in English", "point 2"]
     }},
-    "analyse_conversion": {{
-        "taux_moyen": "X%",
-        "campagne_top_conversion": "name",
+    "conversion_analysis": {{
+        "average_rate": "X%",
+        "top_conversion_campaign": "name",
         "hypotheses": ["hypothesis in English", "hypothesis 2"]
     }},
-    "patterns_identifies": {{
+    "identified_patterns": {{
         "copywriting": ["pattern in English", "pattern 2"],
         "timing": ["observation in English"],
-        "canal": ["email vs linkedin insight in English"]
+        "channel": ["email vs linkedin insight in English"]
     }},
-    "score_global": {{
-        "note": "X/10",
+    "global_score": {{
+        "score": "X/10",
         "justification": "short explanation IN ENGLISH"
     }}
 }}
@@ -152,34 +152,34 @@ IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
 Provide a structured JSON comparison. ALL VALUES MUST BE IN ENGLISH:
 
 {{
-    "classement": [
+    "ranking": [
         {{
-            "rang": 1,
-            "campagne": "name",
-            "score_global": "X/100",
-            "forces": ["strength 1 in English", "strength 2"],
-            "faiblesses": ["weakness in English"]
+            "rank": 1,
+            "campaign": "name",
+            "global_score": "X/100",
+            "strengths": ["strength 1 in English", "strength 2"],
+            "weaknesses": ["weakness in English"]
         }}
     ],
-    "meilleur_sujet_email": {{
-        "sujet": "the subject",
+    "best_email_subject": {{
+        "subject": "the subject",
         "open_rate": "X%",
-        "pourquoi_ca_marche": "explanation IN ENGLISH"
+        "why_it_works": "explanation IN ENGLISH"
     }},
-    "meilleur_corps_email": {{
-        "campagne": "name",
+    "best_email_body": {{
+        "campaign": "name",
         "reply_rate": "X%",
-        "elements_cles": ["element in English", "element 2"]
+        "key_elements": ["element in English", "element 2"]
     }},
-    "meilleur_linkedin": {{
-        "campagne": "name",
+    "best_linkedin": {{
+        "campaign": "name",
         "acceptance_rate": "X%",
         "reply_rate": "X%",
-        "pourquoi_ca_marche": "explanation IN ENGLISH"
+        "why_it_works": "explanation IN ENGLISH"
     }},
-    "comparaison_canal": {{
+    "channel_comparison": {{
         "email_vs_linkedin": "which channel performs better and why IN ENGLISH",
-        "recommandation": "recommendation IN ENGLISH"
+        "recommendation": "recommendation IN ENGLISH"
     }},
     "conclusion": "summary in 2-3 sentences IN ENGLISH"
 }}
@@ -206,46 +206,46 @@ IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
 Provide structured suggestions in JSON. ALL VALUES MUST BE IN ENGLISH:
 
 {{
-    "priorite_tests": [
+    "priority_tests": [
         {{
-            "priorite": 1,
-            "type_test": "email subject / email body / linkedin message / sequence",
-            "hypothese": "what we want to test IN ENGLISH",
-            "variante_A": "description or example IN ENGLISH",
-            "variante_B": "description or example IN ENGLISH",
-            "metrique_succes": "open rate / reply rate / etc",
-            "taille_echantillon_recommandee": "X leads minimum",
-            "impact_potentiel": "low / medium / high"
+            "priority": 1,
+            "test_type": "email subject / email body / linkedin message / sequence",
+            "hypothesis": "what we want to test IN ENGLISH",
+            "variant_A": "description or example IN ENGLISH",
+            "variant_B": "description or example IN ENGLISH",
+            "success_metric": "open rate / reply rate / etc",
+            "recommended_sample_size": "X leads minimum",
+            "potential_impact": "low / medium / high"
         }}
     ],
-    "tests_sujet_email": [
+    "email_subject_tests": [
         {{
-            "sujet_actuel": "current best",
-            "variantes_proposees": ["variant 1 IN ENGLISH", "variant 2", "variant 3"],
-            "logique": "why these variants IN ENGLISH"
+            "current_subject": "current best",
+            "proposed_variants": ["variant 1 IN ENGLISH", "variant 2", "variant 3"],
+            "rationale": "why these variants IN ENGLISH"
         }}
     ],
-    "tests_corps_email": [
+    "email_body_tests": [
         {{
-            "element_a_tester": "hook / CTA / length / personalization",
+            "element_to_test": "hook / CTA / length / personalization",
             "description": "what we change IN ENGLISH",
-            "exemple": "concrete example IN ENGLISH"
+            "example": "concrete example IN ENGLISH"
         }}
     ],
-    "tests_linkedin": [
+    "linkedin_tests": [
         {{
-            "element_a_tester": "connection message / follow-up / voice note",
+            "element_to_test": "connection message / follow-up / voice note",
             "description": "what we change IN ENGLISH",
-            "exemple": "concrete example IN ENGLISH"
+            "example": "concrete example IN ENGLISH"
         }}
     ],
-    "roadmap_testing": {{
-        "semaine_1": "test description IN ENGLISH",
-        "semaine_2": "test description IN ENGLISH",
-        "semaine_3": "test description IN ENGLISH",
-        "semaine_4": "analysis and iteration IN ENGLISH"
+    "testing_roadmap": {{
+        "week_1": "test description IN ENGLISH",
+        "week_2": "test description IN ENGLISH",
+        "week_3": "test description IN ENGLISH",
+        "week_4": "analysis and iteration IN ENGLISH"
     }},
-    "conseil_strategique": "general recommendation in 2-3 sentences IN ENGLISH"
+    "strategic_advice": "general recommendation in 2-3 sentences IN ENGLISH"
 }}
 
 Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
@@ -266,34 +266,34 @@ IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
 Generate variants in JSON. ALL VALUES MUST BE IN ENGLISH:
 
 {{
-    "analyse_contenu_gagnant": {{
-        "elements_cles": ["key element IN ENGLISH", "element 2"],
-        "ton": "tone description IN ENGLISH",
+    "winning_content_analysis": {{
+        "key_elements": ["key element IN ENGLISH", "element 2"],
+        "tone": "tone description IN ENGLISH",
         "structure": "structure description IN ENGLISH",
-        "hooks_efficaces": ["effective hook IN ENGLISH", "hook 2"]
+        "effective_hooks": ["effective hook IN ENGLISH", "hook 2"]
     }},
-    "variantes_sujet": [
+    "subject_variants": [
         {{
-            "sujet": "new subject IN ENGLISH",
+            "subject": "new subject IN ENGLISH",
             "angle": "different angle IN ENGLISH",
-            "pourquoi": "justification IN ENGLISH"
+            "rationale": "justification IN ENGLISH"
         }}
     ],
-    "variantes_corps_email": [
+    "email_body_variants": [
         {{
             "version": "Version A",
-            "corps": "complete email body IN ENGLISH",
-            "modification_principale": "what changes vs original IN ENGLISH"
+            "body": "complete email body IN ENGLISH",
+            "main_change": "what changes vs original IN ENGLISH"
         }}
     ],
-    "variantes_linkedin": [
+    "linkedin_variants": [
         {{
             "version": "Version A",
             "message": "complete message IN ENGLISH",
-            "modification_principale": "what changes IN ENGLISH"
+            "main_change": "what changes IN ENGLISH"
         }}
     ],
-    "recommandation_test": "which variant to test first and why IN ENGLISH"
+    "test_recommendation": "which variant to test first and why IN ENGLISH"
 }}
 
 Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
@@ -351,30 +351,30 @@ class MockGeminiAnalyzer:
     
     def analyze_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
         return {
-            "resume_global": {
-                "meilleure_campagne": "Demo Campaign A",
-                "pire_campagne": "Demo Campaign C",
-                "tendance_generale": "Campaigns with personalization perform better"
+            "global_summary": {
+                "best_campaign": "Demo Campaign A",
+                "worst_campaign": "Demo Campaign C",
+                "general_trend": "Campaigns with personalization perform better"
             },
-            "analyse_open_rate": {
-                "moyenne": "45%",
-                "meilleur_sujet": "{{firstName}} - Quick question",
-                "patterns_gagnants": ["First name personalization", "Curiosity", "Short (<50 chars)"],
-                "patterns_perdants": ["Too promotional", "Excessive caps"]
+            "open_rate_analysis": {
+                "average": "45%",
+                "best_subject": "{{firstName}} - Quick question",
+                "winning_patterns": ["First name personalization", "Curiosity", "Short (<50 chars)"],
+                "losing_patterns": ["Too promotional", "Excessive caps"]
             },
-            "analyse_reply_rate": {
-                "moyenne_email": "8%",
-                "moyenne_linkedin": "12%",
-                "facteurs_succes": ["Open question", "Immediate value", "Social proof"],
-                "points_amelioration": ["Clearer CTA", "Reduce length"]
+            "reply_rate_analysis": {
+                "email_average": "8%",
+                "linkedin_average": "12%",
+                "success_factors": ["Open question", "Immediate value", "Social proof"],
+                "improvement_points": ["Clearer CTA", "Reduce length"]
             },
-            "patterns_identifies": {
+            "identified_patterns": {
                 "copywriting": ["Precise numbers increase credibility", "Questions engage more"],
                 "timing": ["Tuesday-Thursday perform better"],
-                "canal": ["LinkedIn > Email for C-level decision makers"]
+                "channel": ["LinkedIn > Email for C-level decision makers"]
             },
-            "score_global": {
-                "note": "7/10",
+            "global_score": {
+                "score": "7/10",
                 "justification": "Good foundation but optimization possible on follow-ups"
             },
             "_note": "⚠️ This is a demo analysis. Connect your Gemini API key for real analysis."
@@ -382,9 +382,9 @@ class MockGeminiAnalyzer:
     
     def compare_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
         return {
-            "classement": [
-                {"rang": 1, "campagne": "Demo A", "score_global": "85/100", "forces": ["Good open rate", "Clear CTA"]},
-                {"rang": 2, "campagne": "Demo B", "score_global": "72/100", "forces": ["Personalization"]},
+            "ranking": [
+                {"rank": 1, "campaign": "Demo A", "global_score": "85/100", "strengths": ["Good open rate", "Clear CTA"]},
+                {"rank": 2, "campaign": "Demo B", "global_score": "72/100", "strengths": ["Personalization"]},
             ],
             "conclusion": "Campaign A outperforms thanks to its catchy subject line.",
             "_note": "⚠️ Demo analysis"
@@ -392,25 +392,25 @@ class MockGeminiAnalyzer:
     
     def suggest_next_tests(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
         return {
-            "priorite_tests": [
+            "priority_tests": [
                 {
-                    "priorite": 1,
-                    "type_test": "email subject",
-                    "hypothese": "A subject with precise number increases open rate",
-                    "variante_A": "Current subject",
-                    "variante_B": "{{firstName}}, 3 min to double your replies",
-                    "impact_potentiel": "high"
+                    "priority": 1,
+                    "test_type": "email subject",
+                    "hypothesis": "A subject with precise number increases open rate",
+                    "variant_A": "Current subject",
+                    "variant_B": "{{firstName}}, 3 min to double your replies",
+                    "potential_impact": "high"
                 }
             ],
-            "conseil_strategique": "Focus on open rate first before optimizing the body.",
+            "strategic_advice": "Focus on open rate first before optimizing the body.",
             "_note": "⚠️ Demo suggestions"
         }
     
     def generate_variants(self, winning_content: dict, num_variants: int = 3) -> dict:
         return {
-            "variantes_sujet": [
-                {"sujet": "{{firstName}}, quick question about {{companyName}}", "angle": "Double personalization"},
-                {"sujet": "2 min - idea for {{companyName}}", "angle": "Short time + value"},
+            "subject_variants": [
+                {"subject": "{{firstName}}, quick question about {{companyName}}", "angle": "Double personalization"},
+                {"subject": "2 min - idea for {{companyName}}", "angle": "Short time + value"},
             ],
             "_note": "⚠️ Demo variants"
         }

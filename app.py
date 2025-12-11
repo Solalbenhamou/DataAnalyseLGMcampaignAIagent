@@ -471,37 +471,37 @@ def render_analysis_results(results: dict):
         st.warning(results["_note"])
     
     # Global summary
-    if "resume_global" in results:
+    if "global_summary" in results:
         st.markdown("#### 📋 Global Summary")
-        summary = results["resume_global"]
+        summary = results["global_summary"]
         col1, col2 = st.columns(2)
         with col1:
-            st.success(f"🏆 **Best campaign:** {summary.get('meilleure_campagne', 'N/A')}")
+            st.success(f"🏆 **Best campaign:** {summary.get('best_campaign', 'N/A')}")
         with col2:
-            st.error(f"📉 **Needs improvement:** {summary.get('pire_campagne', 'N/A')}")
-        st.info(f"📊 **Trend:** {summary.get('tendance_generale', 'N/A')}")
+            st.error(f"📉 **Needs improvement:** {summary.get('worst_campaign', 'N/A')}")
+        st.info(f"📊 **Trend:** {summary.get('general_trend', 'N/A')}")
     
     # Open rate analysis
-    if "analyse_open_rate" in results:
+    if "open_rate_analysis" in results:
         st.markdown("#### 📧 Open Rate Analysis")
-        oar = results["analyse_open_rate"]
-        st.markdown(f"**Average:** {oar.get('moyenne', 'N/A')}")
-        st.markdown(f"**Best subject:** `{oar.get('meilleur_sujet', 'N/A')}`")
+        oar = results["open_rate_analysis"]
+        st.markdown(f"**Average:** {oar.get('average', 'N/A')}")
+        st.markdown(f"**Best subject:** `{oar.get('best_subject', 'N/A')}`")
         
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("✅ **Winning patterns:**")
-            for p in oar.get("patterns_gagnants", []):
+            for p in oar.get("winning_patterns", []):
                 st.markdown(f"- {p}")
         with col2:
             st.markdown("❌ **Losing patterns:**")
-            for p in oar.get("patterns_perdants", []):
+            for p in oar.get("losing_patterns", []):
                 st.markdown(f"- {p}")
     
     # Patterns identified
-    if "patterns_identifies" in results:
+    if "identified_patterns" in results:
         st.markdown("#### 🔍 Patterns Identified")
-        patterns = results["patterns_identifies"]
+        patterns = results["identified_patterns"]
         
         for category, items in patterns.items():
             with st.expander(f"📌 {category.title()}"):
@@ -509,33 +509,33 @@ def render_analysis_results(results: dict):
                     st.markdown(f"- {item}")
     
     # Global score
-    if "score_global" in results:
+    if "global_score" in results:
         st.markdown("#### 🎯 Global Score")
-        score = results["score_global"]
-        st.markdown(f"**Score:** {score.get('note', 'N/A')}")
+        score = results["global_score"]
+        st.markdown(f"**Score:** {score.get('score', 'N/A')}")
         st.markdown(f"**Justification:** {score.get('justification', 'N/A')}")
 
 
 def render_comparison_results(results: dict):
     """Render comparison results"""
     if "error" in results:
-        st.error(f"Erreur: {results['error']}")
+        st.error(f"Error: {results['error']}")
         return
     
     if "_note" in results:
         st.warning(results["_note"])
     
     # Ranking
-    if "classement" in results:
-        st.markdown("#### 🏆 Classement")
-        for item in results["classement"]:
-            with st.expander(f"#{item.get('rang', '?')} - {item.get('campagne', 'N/A')} ({item.get('score_global', 'N/A')})"):
-                st.markdown("**Forces:**")
-                for f in item.get("forces", []):
+    if "ranking" in results:
+        st.markdown("#### 🏆 Ranking")
+        for item in results["ranking"]:
+            with st.expander(f"#{item.get('rank', '?')} - {item.get('campaign', 'N/A')} ({item.get('global_score', 'N/A')})"):
+                st.markdown("**Strengths:**")
+                for f in item.get("strengths", []):
                     st.markdown(f"- ✅ {f}")
-                if item.get("faiblesses"):
-                    st.markdown("**Faiblesses:**")
-                    for f in item.get("faiblesses", []):
+                if item.get("weaknesses"):
+                    st.markdown("**Weaknesses:**")
+                    for f in item.get("weaknesses", []):
                         st.markdown(f"- ❌ {f}")
     
     # Conclusion
@@ -546,52 +546,52 @@ def render_comparison_results(results: dict):
 def render_suggestions_results(results: dict):
     """Render A/B test suggestions"""
     if "error" in results:
-        st.error(f"Erreur: {results['error']}")
+        st.error(f"Error: {results['error']}")
         return
     
     if "_note" in results:
         st.warning(results["_note"])
     
     # Priority tests
-    if "priorite_tests" in results:
-        st.markdown("#### 🎯 Tests prioritaires")
-        for test in results["priorite_tests"]:
-            with st.expander(f"P{test.get('priorite', '?')} - {test.get('type_test', 'N/A')} ({test.get('impact_potentiel', 'N/A')})"):
-                st.markdown(f"**Hypothèse:** {test.get('hypothese', 'N/A')}")
+    if "priority_tests" in results:
+        st.markdown("#### 🎯 Priority Tests")
+        for test in results["priority_tests"]:
+            with st.expander(f"P{test.get('priority', '?')} - {test.get('test_type', 'N/A')} ({test.get('potential_impact', 'N/A')})"):
+                st.markdown(f"**Hypothesis:** {test.get('hypothesis', 'N/A')}")
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.markdown(f"**Variante A:** {test.get('variante_A', 'N/A')}")
+                    st.markdown(f"**Variant A:** {test.get('variant_A', 'N/A')}")
                 with col2:
-                    st.markdown(f"**Variante B:** {test.get('variante_B', 'N/A')}")
+                    st.markdown(f"**Variant B:** {test.get('variant_B', 'N/A')}")
     
     # Strategic advice
-    if "conseil_strategique" in results:
-        st.success(f"💡 **Conseil stratégique:** {results['conseil_strategique']}")
+    if "strategic_advice" in results:
+        st.success(f"💡 **Strategic Advice:** {results['strategic_advice']}")
 
 
 def render_variants_results(results: dict):
     """Render generated variants"""
     if "error" in results:
-        st.error(f"Erreur: {results['error']}")
+        st.error(f"Error: {results['error']}")
         return
     
     if "_note" in results:
         st.warning(results["_note"])
     
     # Subject variants
-    if "variantes_sujet" in results:
-        st.markdown("#### 📧 Variantes de sujets")
-        for v in results["variantes_sujet"]:
-            st.code(v.get("sujet", "N/A"))
+    if "subject_variants" in results:
+        st.markdown("#### 📧 Subject Variants")
+        for v in results["subject_variants"]:
+            st.code(v.get("subject", "N/A"))
             st.markdown(f"*Angle: {v.get('angle', 'N/A')}*")
             st.markdown("---")
     
     # Body variants
-    if "variantes_corps_email" in results:
-        st.markdown("#### 📝 Variantes de corps d'email")
-        for v in results["variantes_corps_email"]:
+    if "email_body_variants" in results:
+        st.markdown("#### 📝 Email Body Variants")
+        for v in results["email_body_variants"]:
             with st.expander(f"{v.get('version', 'N/A')}"):
-                st.text(v.get("corps", "N/A"))
+                st.text(v.get("body", "N/A"))
 
 
 def render_data_table(df: pd.DataFrame):
