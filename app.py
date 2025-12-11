@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 import json
 from datetime import datetime
 
-from lgm_client import LGMClient, LGMAPIError, CampaignStats, get_all_campaigns
+from lgm_client import LGMClient, LGMAPIError, CampaignStats
 from gemini_analyzer import GeminiAnalyzer, MockGeminiAnalyzer
 
 # Page config
