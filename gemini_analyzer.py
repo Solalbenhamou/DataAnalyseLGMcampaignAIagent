@@ -84,6 +84,8 @@ class GeminiAnalyzer:
         
         return f"""You are an expert in growth marketing and copywriting. Analyze the data from these outreach campaigns (email + LinkedIn).
 
+IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
+
 ## CAMPAIGN DATA:
 {data_str}
 
@@ -92,43 +94,43 @@ class GeminiAnalyzer:
 
 ## REQUESTED ANALYSIS:
 
-Provide a structured JSON analysis with the following sections:
+Provide a structured JSON analysis with the following sections. ALL VALUES MUST BE IN ENGLISH:
 
 {{
     "resume_global": {{
         "meilleure_campagne": "campaign name",
         "pire_campagne": "campaign name",
-        "tendance_generale": "short description"
+        "tendance_generale": "short description IN ENGLISH"
     }},
     "analyse_open_rate": {{
         "moyenne": "X%",
         "meilleur_sujet": "email subject",
-        "patterns_gagnants": ["pattern 1", "pattern 2"],
-        "patterns_perdants": ["pattern 1", "pattern 2"]
+        "patterns_gagnants": ["pattern 1 in English", "pattern 2 in English"],
+        "patterns_perdants": ["pattern 1 in English", "pattern 2 in English"]
     }},
     "analyse_reply_rate": {{
         "moyenne_email": "X%",
         "moyenne_linkedin": "X%",
-        "facteurs_succes": ["factor 1", "factor 2"],
-        "points_amelioration": ["point 1", "point 2"]
+        "facteurs_succes": ["success factor in English", "factor 2"],
+        "points_amelioration": ["improvement point in English", "point 2"]
     }},
     "analyse_conversion": {{
         "taux_moyen": "X%",
         "campagne_top_conversion": "name",
-        "hypotheses": ["hypothesis 1", "hypothesis 2"]
+        "hypotheses": ["hypothesis in English", "hypothesis 2"]
     }},
     "patterns_identifies": {{
-        "copywriting": ["pattern 1", "pattern 2"],
-        "timing": ["observation 1"],
-        "canal": ["email vs linkedin insights"]
+        "copywriting": ["pattern in English", "pattern 2"],
+        "timing": ["observation in English"],
+        "canal": ["email vs linkedin insight in English"]
     }},
     "score_global": {{
         "note": "X/10",
-        "justification": "short explanation"
+        "justification": "short explanation IN ENGLISH"
     }}
 }}
 
-Reply ONLY with the JSON, no text before or after."""
+Reply ONLY with the JSON, no text before or after. ALL TEXT VALUES MUST BE IN ENGLISH."""
 
     def _build_comparison_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
         """Build prompt for campaign comparison"""
@@ -136,6 +138,8 @@ Reply ONLY with the JSON, no text before or after."""
         content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
         
         return f"""You are an expert in growth marketing. Compare these outreach campaigns and identify the winners.
+
+IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
 
 ## CAMPAIGN DATA:
 {data_str}
@@ -145,7 +149,7 @@ Reply ONLY with the JSON, no text before or after."""
 
 ## REQUESTED COMPARISON:
 
-Provide a structured JSON comparison:
+Provide a structured JSON comparison. ALL VALUES MUST BE IN ENGLISH:
 
 {{
     "classement": [
@@ -153,34 +157,34 @@ Provide a structured JSON comparison:
             "rang": 1,
             "campagne": "name",
             "score_global": "X/100",
-            "forces": ["strength 1", "strength 2"],
-            "faiblesses": ["weakness 1"]
+            "forces": ["strength 1 in English", "strength 2"],
+            "faiblesses": ["weakness in English"]
         }}
     ],
     "meilleur_sujet_email": {{
         "sujet": "the subject",
         "open_rate": "X%",
-        "pourquoi_ca_marche": "explanation"
+        "pourquoi_ca_marche": "explanation IN ENGLISH"
     }},
     "meilleur_corps_email": {{
         "campagne": "name",
         "reply_rate": "X%",
-        "elements_cles": ["element 1", "element 2"]
+        "elements_cles": ["element in English", "element 2"]
     }},
     "meilleur_linkedin": {{
         "campagne": "name",
         "acceptance_rate": "X%",
         "reply_rate": "X%",
-        "pourquoi_ca_marche": "explanation"
+        "pourquoi_ca_marche": "explanation IN ENGLISH"
     }},
     "comparaison_canal": {{
-        "email_vs_linkedin": "which channel performs better and why",
-        "recommandation": "recommendation on channel mix"
+        "email_vs_linkedin": "which channel performs better and why IN ENGLISH",
+        "recommandation": "recommendation IN ENGLISH"
     }},
-    "conclusion": "summary in 2-3 sentences"
+    "conclusion": "summary in 2-3 sentences IN ENGLISH"
 }}
 
-Reply ONLY with the JSON."""
+Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
 
     def _build_suggestions_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
         """Build prompt for A/B test suggestions"""
@@ -188,6 +192,8 @@ Reply ONLY with the JSON."""
         content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
         
         return f"""You are an expert in growth marketing and A/B testing. Based on these campaign results, suggest the next tests to run.
+
+IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
 
 ## CURRENT DATA:
 {data_str}
@@ -197,16 +203,16 @@ Reply ONLY with the JSON."""
 
 ## REQUESTED SUGGESTIONS:
 
-Provide structured suggestions in JSON:
+Provide structured suggestions in JSON. ALL VALUES MUST BE IN ENGLISH:
 
 {{
     "priorite_tests": [
         {{
             "priorite": 1,
             "type_test": "email subject / email body / linkedin message / sequence",
-            "hypothese": "what we want to test",
-            "variante_A": "description or example",
-            "variante_B": "description or example",
+            "hypothese": "what we want to test IN ENGLISH",
+            "variante_A": "description or example IN ENGLISH",
+            "variante_B": "description or example IN ENGLISH",
             "metrique_succes": "open rate / reply rate / etc",
             "taille_echantillon_recommandee": "X leads minimum",
             "impact_potentiel": "low / medium / high"
@@ -215,34 +221,34 @@ Provide structured suggestions in JSON:
     "tests_sujet_email": [
         {{
             "sujet_actuel": "current best",
-            "variantes_proposees": ["variant 1", "variant 2", "variant 3"],
-            "logique": "why these variants"
+            "variantes_proposees": ["variant 1 IN ENGLISH", "variant 2", "variant 3"],
+            "logique": "why these variants IN ENGLISH"
         }}
     ],
     "tests_corps_email": [
         {{
             "element_a_tester": "hook / CTA / length / personalization",
-            "description": "what we change",
-            "exemple": "concrete example"
+            "description": "what we change IN ENGLISH",
+            "exemple": "concrete example IN ENGLISH"
         }}
     ],
     "tests_linkedin": [
         {{
             "element_a_tester": "connection message / follow-up / voice note",
-            "description": "what we change",
-            "exemple": "concrete example"
+            "description": "what we change IN ENGLISH",
+            "exemple": "concrete example IN ENGLISH"
         }}
     ],
     "roadmap_testing": {{
-        "semaine_1": "test description",
-        "semaine_2": "test description",
-        "semaine_3": "test description",
-        "semaine_4": "analysis and iteration"
+        "semaine_1": "test description IN ENGLISH",
+        "semaine_2": "test description IN ENGLISH",
+        "semaine_3": "test description IN ENGLISH",
+        "semaine_4": "analysis and iteration IN ENGLISH"
     }},
-    "conseil_strategique": "general recommendation in 2-3 sentences"
+    "conseil_strategique": "general recommendation in 2-3 sentences IN ENGLISH"
 }}
 
-Reply ONLY with the JSON."""
+Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
 
     def _build_variants_prompt(self, winning_content: dict, num_variants: int) -> str:
         """Build prompt for generating content variants"""
@@ -250,45 +256,47 @@ Reply ONLY with the JSON."""
         
         return f"""You are an expert B2B copywriter. Generate {num_variants} variants of the following winning content, keeping the elements that work.
 
+IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
+
 ## WINNING CONTENT:
 {content_str}
 
 ## REQUESTED VARIANTS:
 
-Generate variants in JSON:
+Generate variants in JSON. ALL VALUES MUST BE IN ENGLISH:
 
 {{
     "analyse_contenu_gagnant": {{
-        "elements_cles": ["element 1", "element 2"],
-        "ton": "tone description",
-        "structure": "structure description",
-        "hooks_efficaces": ["hook 1", "hook 2"]
+        "elements_cles": ["key element IN ENGLISH", "element 2"],
+        "ton": "tone description IN ENGLISH",
+        "structure": "structure description IN ENGLISH",
+        "hooks_efficaces": ["effective hook IN ENGLISH", "hook 2"]
     }},
     "variantes_sujet": [
         {{
-            "sujet": "new subject",
-            "angle": "different angle",
-            "pourquoi": "justification"
+            "sujet": "new subject IN ENGLISH",
+            "angle": "different angle IN ENGLISH",
+            "pourquoi": "justification IN ENGLISH"
         }}
     ],
     "variantes_corps_email": [
         {{
             "version": "Version A",
-            "corps": "complete email body",
-            "modification_principale": "what changes vs original"
+            "corps": "complete email body IN ENGLISH",
+            "modification_principale": "what changes vs original IN ENGLISH"
         }}
     ],
     "variantes_linkedin": [
         {{
             "version": "Version A",
-            "message": "complete message",
-            "modification_principale": "what changes"
+            "message": "complete message IN ENGLISH",
+            "modification_principale": "what changes IN ENGLISH"
         }}
     ],
-    "recommandation_test": "which variant to test first and why"
+    "recommandation_test": "which variant to test first and why IN ENGLISH"
 }}
 
-Reply ONLY with the JSON."""
+Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
 
     def _parse_analysis_response(self, response_text: str) -> dict:
         """Parse the analysis response from Gemini"""
