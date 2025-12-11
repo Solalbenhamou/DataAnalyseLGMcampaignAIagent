@@ -95,9 +95,9 @@ class LGMClient:
             raise LGMAPIError(f"API request failed: {str(e)}")
     
     def test_connection(self) -> bool:
-        """Test if API connection is working"""
+        """Test if API connection is working using audiences endpoint"""
         try:
-            self.get_members()
+            self.get_audiences()
             return True
         except LGMAPIError:
             return False
@@ -110,85 +110,66 @@ class LGMClient:
         """Get all audiences"""
         return self._make_request("audiences")
     
-    def get_campaigns(self) -> list:
-        """Get all campaigns"""
-        return self._make_request("campaigns")
-    
     def get_campaign_stats(self, campaign_id: str) -> dict:
         """Get statistics for a specific campaign"""
         return self._make_request(f"campaigns/{campaign_id}/stats")
     
-    def get_campaign_details(self, campaign_id: str) -> dict:
-        """Get details for a specific campaign"""
-        return self._make_request(f"campaigns/{campaign_id}")
-    
-    def get_all_campaigns_with_stats(self) -> list[CampaignStats]:
-        """Get all campaigns with their statistics"""
-        campaigns = self.get_campaigns()
-        results = []
+    def get_campaigns_stats_by_ids(self, campaign_ids: list[str], campaign_names: dict = None) -> list[CampaignStats]:
+        """
+        Get statistics for multiple campaigns by their IDs
         
-        for campaign in campaigns:
-            campaign_id = campaign.get("id") or campaign.get("_id")
-            campaign_name = campaign.get("name", "Unknown")
+        Args:
+            campaign_ids: List of campaign IDs
+            campaign_names: Optional dict mapping campaign_id -> campaign_name
+        """
+        results = []
+        campaign_names = campaign_names or {}
+        
+        for campaign_id in campaign_ids:
+            campaign_name = campaign_names.get(campaign_id, f"Campaign {campaign_id[:8]}...")
             
             try:
                 stats = self.get_campaign_stats(campaign_id)
                 campaign_stats = self._parse_campaign_stats(campaign_id, campaign_name, stats)
                 results.append(campaign_stats)
-            except LGMAPIError:
-                # If stats fail, add campaign with zero stats
+            except LGMAPIError as e:
                 results.append(CampaignStats(
                     campaign_id=campaign_id,
-                    campaign_name=campaign_name
-                ))
-        
-        return results
-    
-    def get_selected_campaigns_stats(self, campaign_ids: list[str]) -> list[CampaignStats]:
-        """Get statistics for selected campaigns only"""
-        campaigns = self.get_campaigns()
-        campaign_map = {
-            (c.get("id") or c.get("_id")): c.get("name", "Unknown") 
-            for c in campaigns
-        }
-        
-        results = []
-        for campaign_id in campaign_ids:
-            campaign_name = campaign_map.get(campaign_id, "Unknown")
-            try:
-                stats = self.get_campaign_stats(campaign_id)
-                campaign_stats = self._parse_campaign_stats(campaign_id, campaign_name, stats)
-                results.append(campaign_stats)
-            except LGMAPIError:
-                results.append(CampaignStats(
-                    campaign_id=campaign_id,
-                    campaign_name=campaign_name
+                    campaign_name=f"{campaign_name} (erreur)"
                 ))
         
         return results
     
     def _parse_campaign_stats(self, campaign_id: str, campaign_name: str, stats: dict) -> CampaignStats:
         """Parse raw API stats into CampaignStats object"""
-        # LGM API returns nested stats - adapt based on actual response structure
-        # This parsing may need adjustment based on actual API response
+        # LGM API response structure - adapt based on actual response
+        email_stats = stats.get("email", stats.get("emails", {}))
+        linkedin_stats = stats.get("linkedin", stats.get("linkedIn", {}))
+        global_stats = stats.get("global", stats.get("summary", stats))
         
-        email_stats = stats.get("email", {})
-        linkedin_stats = stats.get("linkedin", {})
-        global_stats = stats.get("global", stats)
+        def get_value(*keys, default=0):
+            for key in keys:
+                if key in stats:
+                    return stats[key]
+                if key in global_stats:
+                    return global_stats[key]
+                if key in email_stats:
+                    return email_stats[key]
+            return default
         
         return CampaignStats(
             campaign_id=campaign_id,
             campaign_name=campaign_name,
-            total_leads=global_stats.get("totalLeads", global_stats.get("leads", 0)),
-            emails_sent=email_stats.get("sent", global_stats.get("emailsSent", 0)),
-            emails_opened=email_stats.get("opened", global_stats.get("emailsOpened", 0)),
-            emails_clicked=email_stats.get("clicked", global_stats.get("emailsClicked", 0)),
-            emails_replied=email_stats.get("replied", global_stats.get("emailsReplied", 0)),
-            linkedin_sent=linkedin_stats.get("sent", global_stats.get("linkedinSent", 0)),
-            linkedin_accepted=linkedin_stats.get("accepted", global_stats.get("linkedinAccepted", 0)),
-            linkedin_replied=linkedin_stats.get("replied", global_stats.get("linkedinReplied", 0)),
-            total_replies=global_stats.get("totalReplies", global_stats.get("replied", 0)),
-            total_conversions=global_stats.get("conversions", global_stats.get("converted", 0))
+            total_leads=get_value("totalLeads", "leads", "leadsCount", "total_leads"),
+            emails_sent=get_value("emailsSent", "sent", "emails_sent", "mailsSent"),
+            emails_opened=get_value("emailsOpened", "opened", "emails_opened", "mailsOpened"),
+            emails_clicked=get_value("emailsClicked", "clicked", "emails_clicked", "mailsClicked"),
+            emails_replied=get_value("emailsReplied", "replied", "emails_replied", "mailsReplied"),
+            linkedin_sent=get_value("linkedinSent", "invitesSent", "linkedin_sent", "connectionsSent"),
+            linkedin_accepted=get_value("linkedinAccepted", "invitesAccepted", "linkedin_accepted", "connectionsAccepted"),
+            linkedin_replied=get_value("linkedinReplied", "messagesReplied", "linkedin_replied"),
+            total_replies=get_value("totalReplies", "replies", "total_replies", "replied"),
+            total_conversions=get_value("conversions", "converted", "total_conversions", "deals")
         )
 
 

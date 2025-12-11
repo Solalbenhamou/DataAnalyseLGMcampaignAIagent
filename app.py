@@ -647,54 +647,79 @@ def main():
             st.warning("⚠️ Entrez votre clé API LGM dans la sidebar pour commencer, ou activez le mode démo.")
             return
         
-        # Fetch campaigns from LGM
-        try:
-            client = LGMClient(lgm_api_key)
-            
-            with st.spinner("Chargement des campagnes depuis LGM..."):
-                campaigns = client.get_campaigns()
-            
-            if not campaigns:
-                st.warning("Aucune campagne trouvée dans votre compte LGM.")
-                return
-            
-            # Campaign selection
-            st.markdown("### 🎯 Sélection des campagnes")
-            
-            campaign_options = {
-                c.get("name", f"Campaign {c.get('id', 'unknown')}"): c.get("id") or c.get("_id")
-                for c in campaigns
-            }
-            
-            selected_names = st.multiselect(
-                "Choisissez les campagnes à analyser",
-                options=list(campaign_options.keys()),
-                default=list(campaign_options.keys())[:5] if len(campaign_options) > 5 else list(campaign_options.keys())
+        client = LGMClient(lgm_api_key)
+        
+        # Campaign ID input section
+        st.markdown("### 🎯 Sélection des campagnes")
+        
+        st.markdown("""
+        <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+        <strong>💡 Comment trouver vos Campaign IDs ?</strong><br>
+        1. Allez sur <a href="https://app.lagrowthmachine.com" target="_blank">app.lagrowthmachine.com</a><br>
+        2. Ouvrez une campagne<br>
+        3. L'ID est dans l'URL : <code>app.lagrowthmachine.com/campaigns/<strong>CAMPAIGN_ID</strong>/...</code>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Text area for campaign IDs
+        campaign_input = st.text_area(
+            "Entrez vos Campaign IDs (un par ligne)",
+            placeholder="exemple-campaign-id-1\nexemple-campaign-id-2\nexemple-campaign-id-3",
+            height=150,
+            help="Copiez les IDs depuis l'URL de vos campagnes LGM"
+        )
+        
+        # Optional: Campaign names
+        with st.expander("➕ Ajouter des noms personnalisés (optionnel)"):
+            st.markdown("Format: `campaign_id:Nom de la campagne` (un par ligne)")
+            names_input = st.text_area(
+                "Noms des campagnes",
+                placeholder="campaign-id-1:Email > LinkedIn CEO #1\ncampaign-id-2:LinkedIn > Email CMO #1",
+                height=100
             )
-            
-            if not selected_names:
-                st.warning("Sélectionnez au moins une campagne.")
-                return
-            
-            selected_ids = [campaign_options[name] for name in selected_names]
-            
-            # Fetch stats for selected campaigns
-            with st.spinner("Récupération des statistiques..."):
-                stats_list = client.get_selected_campaigns_stats(selected_ids)
-            
-            # Campaign content (would need to be fetched or provided)
-            campaign_content = {}  # TODO: Add campaign content fetching
-            
-            # Initialize Gemini analyzer
-            if gemini_api_key:
-                analyzer = GeminiAnalyzer(gemini_api_key)
-            else:
-                st.warning("⚠️ Sans clé Gemini, l'analyse IA utilisera des réponses de démonstration.")
-                analyzer = MockGeminiAnalyzer()
-                
-        except LGMAPIError as e:
-            st.error(f"Erreur API LGM: {str(e)}")
+        
+        # Parse campaign IDs
+        campaign_ids = []
+        campaign_names = {}
+        
+        if campaign_input:
+            campaign_ids = [cid.strip() for cid in campaign_input.strip().split("\n") if cid.strip()]
+        
+        if names_input:
+            for line in names_input.strip().split("\n"):
+                if ":" in line:
+                    cid, name = line.split(":", 1)
+                    campaign_names[cid.strip()] = name.strip()
+        
+        if not campaign_ids:
+            st.warning("⚠️ Entrez au moins un Campaign ID pour commencer l'analyse.")
             return
+        
+        # Fetch stats button
+        if st.button("📊 Récupérer les statistiques", type="primary", use_container_width=True):
+            try:
+                with st.spinner(f"Récupération des stats pour {len(campaign_ids)} campagne(s)..."):
+                    stats_list = client.get_campaigns_stats_by_ids(campaign_ids, campaign_names)
+                    st.session_state.campaign_stats = stats_list
+                st.success(f"✅ {len(stats_list)} campagne(s) chargée(s) avec succès!")
+            except LGMAPIError as e:
+                st.error(f"Erreur API LGM: {str(e)}")
+                return
+        
+        # Use cached stats if available
+        if not st.session_state.campaign_stats:
+            st.info("👆 Cliquez sur le bouton ci-dessus pour charger les données")
+            return
+        
+        stats_list = st.session_state.campaign_stats
+        campaign_content = {}  # Can be extended to fetch content
+        
+        # Initialize Gemini analyzer
+        if gemini_api_key:
+            analyzer = GeminiAnalyzer(gemini_api_key)
+        else:
+            st.warning("⚠️ Sans clé Gemini, l'analyse IA utilisera des réponses de démonstration.")
+            analyzer = MockGeminiAnalyzer()
     
     # Convert stats to DataFrame
     df = stats_to_dataframe(stats_list)
