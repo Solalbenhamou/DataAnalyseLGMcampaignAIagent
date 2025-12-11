@@ -14,7 +14,7 @@ class GeminiAnalyzer:
     
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
     def analyze_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
         """
