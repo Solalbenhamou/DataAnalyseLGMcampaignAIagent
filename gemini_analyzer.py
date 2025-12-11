@@ -80,42 +80,42 @@ class GeminiAnalyzer:
     def _build_analysis_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
         """Build prompt for campaign analysis"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Non fourni"
+        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
         
-        return f"""Tu es un expert en growth marketing et copywriting. Analyse les données de ces campagnes d'outreach (email + LinkedIn).
+        return f"""You are an expert in growth marketing and copywriting. Analyze the data from these outreach campaigns (email + LinkedIn).
 
-## DONNÉES DES CAMPAGNES:
+## CAMPAIGN DATA:
 {data_str}
 
-## CONTENU DES CAMPAGNES (sujets, corps de mail, messages LinkedIn):
+## CAMPAIGN CONTENT (subjects, email body, LinkedIn messages):
 {content_str}
 
-## ANALYSE DEMANDÉE:
+## REQUESTED ANALYSIS:
 
-Fournis une analyse structurée en JSON avec les sections suivantes:
+Provide a structured JSON analysis with the following sections:
 
 {{
     "resume_global": {{
-        "meilleure_campagne": "nom de la campagne",
-        "pire_campagne": "nom de la campagne",
-        "tendance_generale": "description courte"
+        "meilleure_campagne": "campaign name",
+        "pire_campagne": "campaign name",
+        "tendance_generale": "short description"
     }},
     "analyse_open_rate": {{
         "moyenne": "X%",
-        "meilleur_sujet": "sujet email",
+        "meilleur_sujet": "email subject",
         "patterns_gagnants": ["pattern 1", "pattern 2"],
         "patterns_perdants": ["pattern 1", "pattern 2"]
     }},
     "analyse_reply_rate": {{
         "moyenne_email": "X%",
         "moyenne_linkedin": "X%",
-        "facteurs_succes": ["facteur 1", "facteur 2"],
+        "facteurs_succes": ["factor 1", "factor 2"],
         "points_amelioration": ["point 1", "point 2"]
     }},
     "analyse_conversion": {{
         "taux_moyen": "X%",
-        "campagne_top_conversion": "nom",
-        "hypotheses": ["hypothèse 1", "hypothèse 2"]
+        "campagne_top_conversion": "name",
+        "hypotheses": ["hypothesis 1", "hypothesis 2"]
     }},
     "patterns_identifies": {{
         "copywriting": ["pattern 1", "pattern 2"],
@@ -124,171 +124,171 @@ Fournis une analyse structurée en JSON avec les sections suivantes:
     }},
     "score_global": {{
         "note": "X/10",
-        "justification": "explication courte"
+        "justification": "short explanation"
     }}
 }}
 
-Réponds UNIQUEMENT avec le JSON, sans texte avant ou après."""
+Reply ONLY with the JSON, no text before or after."""
 
     def _build_comparison_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
         """Build prompt for campaign comparison"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Non fourni"
+        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
         
-        return f"""Tu es un expert en growth marketing. Compare ces campagnes d'outreach et identifie les gagnants.
+        return f"""You are an expert in growth marketing. Compare these outreach campaigns and identify the winners.
 
-## DONNÉES DES CAMPAGNES:
+## CAMPAIGN DATA:
 {data_str}
 
-## CONTENU DES CAMPAGNES:
+## CAMPAIGN CONTENT:
 {content_str}
 
-## COMPARAISON DEMANDÉE:
+## REQUESTED COMPARISON:
 
-Fournis une comparaison structurée en JSON:
+Provide a structured JSON comparison:
 
 {{
     "classement": [
         {{
             "rang": 1,
-            "campagne": "nom",
+            "campagne": "name",
             "score_global": "X/100",
-            "forces": ["force 1", "force 2"],
-            "faiblesses": ["faiblesse 1"]
+            "forces": ["strength 1", "strength 2"],
+            "faiblesses": ["weakness 1"]
         }}
     ],
     "meilleur_sujet_email": {{
-        "sujet": "le sujet",
+        "sujet": "the subject",
         "open_rate": "X%",
-        "pourquoi_ca_marche": "explication"
+        "pourquoi_ca_marche": "explanation"
     }},
     "meilleur_corps_email": {{
-        "campagne": "nom",
+        "campagne": "name",
         "reply_rate": "X%",
-        "elements_cles": ["élément 1", "élément 2"]
+        "elements_cles": ["element 1", "element 2"]
     }},
     "meilleur_linkedin": {{
-        "campagne": "nom",
+        "campagne": "name",
         "acceptance_rate": "X%",
         "reply_rate": "X%",
-        "pourquoi_ca_marche": "explication"
+        "pourquoi_ca_marche": "explanation"
     }},
     "comparaison_canal": {{
-        "email_vs_linkedin": "quel canal performe mieux et pourquoi",
-        "recommandation": "recommandation sur le mix canal"
+        "email_vs_linkedin": "which channel performs better and why",
+        "recommandation": "recommendation on channel mix"
     }},
-    "conclusion": "synthèse en 2-3 phrases"
+    "conclusion": "summary in 2-3 sentences"
 }}
 
-Réponds UNIQUEMENT avec le JSON."""
+Reply ONLY with the JSON."""
 
     def _build_suggestions_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
         """Build prompt for A/B test suggestions"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Non fourni"
+        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
         
-        return f"""Tu es un expert en growth marketing et A/B testing. Basé sur ces résultats de campagnes, suggère les prochains tests à lancer.
+        return f"""You are an expert in growth marketing and A/B testing. Based on these campaign results, suggest the next tests to run.
 
-## DONNÉES ACTUELLES:
+## CURRENT DATA:
 {data_str}
 
-## CONTENU ACTUEL:
+## CURRENT CONTENT:
 {content_str}
 
-## SUGGESTIONS DEMANDÉES:
+## REQUESTED SUGGESTIONS:
 
-Fournis des suggestions structurées en JSON:
+Provide structured suggestions in JSON:
 
 {{
     "priorite_tests": [
         {{
             "priorite": 1,
-            "type_test": "sujet email / corps email / message linkedin / séquence",
-            "hypothese": "ce qu'on veut tester",
-            "variante_A": "description ou exemple",
-            "variante_B": "description ou exemple",
+            "type_test": "email subject / email body / linkedin message / sequence",
+            "hypothese": "what we want to test",
+            "variante_A": "description or example",
+            "variante_B": "description or example",
             "metrique_succes": "open rate / reply rate / etc",
             "taille_echantillon_recommandee": "X leads minimum",
-            "impact_potentiel": "faible / moyen / élevé"
+            "impact_potentiel": "low / medium / high"
         }}
     ],
     "tests_sujet_email": [
         {{
-            "sujet_actuel": "le meilleur actuel",
-            "variantes_proposees": ["variante 1", "variante 2", "variante 3"],
-            "logique": "pourquoi ces variantes"
+            "sujet_actuel": "current best",
+            "variantes_proposees": ["variant 1", "variant 2", "variant 3"],
+            "logique": "why these variants"
         }}
     ],
     "tests_corps_email": [
         {{
-            "element_a_tester": "hook / CTA / longueur / personnalisation",
-            "description": "ce qu'on change",
-            "exemple": "exemple concret"
+            "element_a_tester": "hook / CTA / length / personalization",
+            "description": "what we change",
+            "exemple": "concrete example"
         }}
     ],
     "tests_linkedin": [
         {{
-            "element_a_tester": "message connexion / follow-up / voice note",
-            "description": "ce qu'on change",
-            "exemple": "exemple concret"
+            "element_a_tester": "connection message / follow-up / voice note",
+            "description": "what we change",
+            "exemple": "concrete example"
         }}
     ],
     "roadmap_testing": {{
-        "semaine_1": "description du test",
-        "semaine_2": "description du test",
-        "semaine_3": "description du test",
-        "semaine_4": "analyse et itération"
+        "semaine_1": "test description",
+        "semaine_2": "test description",
+        "semaine_3": "test description",
+        "semaine_4": "analysis and iteration"
     }},
-    "conseil_strategique": "recommandation générale en 2-3 phrases"
+    "conseil_strategique": "general recommendation in 2-3 sentences"
 }}
 
-Réponds UNIQUEMENT avec le JSON."""
+Reply ONLY with the JSON."""
 
     def _build_variants_prompt(self, winning_content: dict, num_variants: int) -> str:
         """Build prompt for generating content variants"""
         content_str = json.dumps(winning_content, indent=2, default=str)
         
-        return f"""Tu es un expert copywriter B2B. Génère {num_variants} variantes du contenu gagnant suivant, en conservant les éléments qui fonctionnent.
+        return f"""You are an expert B2B copywriter. Generate {num_variants} variants of the following winning content, keeping the elements that work.
 
-## CONTENU GAGNANT:
+## WINNING CONTENT:
 {content_str}
 
-## VARIANTES DEMANDÉES:
+## REQUESTED VARIANTS:
 
-Génère des variantes en JSON:
+Generate variants in JSON:
 
 {{
     "analyse_contenu_gagnant": {{
-        "elements_cles": ["élément 1", "élément 2"],
-        "ton": "description du ton",
-        "structure": "description de la structure",
+        "elements_cles": ["element 1", "element 2"],
+        "ton": "tone description",
+        "structure": "structure description",
         "hooks_efficaces": ["hook 1", "hook 2"]
     }},
     "variantes_sujet": [
         {{
-            "sujet": "nouveau sujet",
-            "angle": "quel angle différent",
+            "sujet": "new subject",
+            "angle": "different angle",
             "pourquoi": "justification"
         }}
     ],
     "variantes_corps_email": [
         {{
             "version": "Version A",
-            "corps": "le corps complet de l'email",
-            "modification_principale": "ce qui change vs l'original"
+            "corps": "complete email body",
+            "modification_principale": "what changes vs original"
         }}
     ],
     "variantes_linkedin": [
         {{
             "version": "Version A",
-            "message": "le message complet",
-            "modification_principale": "ce qui change"
+            "message": "complete message",
+            "modification_principale": "what changes"
         }}
     ],
-    "recommandation_test": "quelle variante tester en premier et pourquoi"
+    "recommandation_test": "which variant to test first and why"
 }}
 
-Réponds UNIQUEMENT avec le JSON."""
+Reply ONLY with the JSON."""
 
     def _parse_analysis_response(self, response_text: str) -> dict:
         """Parse the analysis response from Gemini"""
@@ -346,40 +346,40 @@ class MockGeminiAnalyzer:
             "resume_global": {
                 "meilleure_campagne": "Demo Campaign A",
                 "pire_campagne": "Demo Campaign C",
-                "tendance_generale": "Les campagnes avec personnalisation performent mieux"
+                "tendance_generale": "Campaigns with personalization perform better"
             },
             "analyse_open_rate": {
                 "moyenne": "45%",
-                "meilleur_sujet": "{{firstName}} - Question rapide",
-                "patterns_gagnants": ["Personnalisation prénom", "Curiosité", "Court (<50 chars)"],
-                "patterns_perdants": ["Trop promotionnel", "Majuscules excessives"]
+                "meilleur_sujet": "{{firstName}} - Quick question",
+                "patterns_gagnants": ["First name personalization", "Curiosity", "Short (<50 chars)"],
+                "patterns_perdants": ["Too promotional", "Excessive caps"]
             },
             "analyse_reply_rate": {
                 "moyenne_email": "8%",
                 "moyenne_linkedin": "12%",
-                "facteurs_succes": ["Question ouverte", "Valeur immédiate", "Social proof"],
-                "points_amelioration": ["CTA plus clair", "Réduire longueur"]
+                "facteurs_succes": ["Open question", "Immediate value", "Social proof"],
+                "points_amelioration": ["Clearer CTA", "Reduce length"]
             },
             "patterns_identifies": {
-                "copywriting": ["Les chiffres précis augmentent la crédibilité", "Les questions engagent plus"],
-                "timing": ["Mardi-Jeudi performent mieux"],
-                "canal": ["LinkedIn > Email pour les décideurs C-level"]
+                "copywriting": ["Precise numbers increase credibility", "Questions engage more"],
+                "timing": ["Tuesday-Thursday perform better"],
+                "canal": ["LinkedIn > Email for C-level decision makers"]
             },
             "score_global": {
                 "note": "7/10",
-                "justification": "Bonnes bases mais optimisation possible sur les follow-ups"
+                "justification": "Good foundation but optimization possible on follow-ups"
             },
-            "_note": "⚠️ Ceci est une analyse de démonstration. Connectez votre clé API Gemini pour une vraie analyse."
+            "_note": "⚠️ This is a demo analysis. Connect your Gemini API key for real analysis."
         }
     
     def compare_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
         return {
             "classement": [
-                {"rang": 1, "campagne": "Demo A", "score_global": "85/100", "forces": ["Bon open rate", "CTA clair"]},
-                {"rang": 2, "campagne": "Demo B", "score_global": "72/100", "forces": ["Personnalisation"]},
+                {"rang": 1, "campagne": "Demo A", "score_global": "85/100", "forces": ["Good open rate", "Clear CTA"]},
+                {"rang": 2, "campagne": "Demo B", "score_global": "72/100", "forces": ["Personalization"]},
             ],
-            "conclusion": "La campagne A surperforme grâce à son sujet accrocheur.",
-            "_note": "⚠️ Analyse de démonstration"
+            "conclusion": "Campaign A outperforms thanks to its catchy subject line.",
+            "_note": "⚠️ Demo analysis"
         }
     
     def suggest_next_tests(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
@@ -387,22 +387,22 @@ class MockGeminiAnalyzer:
             "priorite_tests": [
                 {
                     "priorite": 1,
-                    "type_test": "sujet email",
-                    "hypothese": "Un sujet avec chiffre précis augmente l'open rate",
-                    "variante_A": "Sujet actuel",
-                    "variante_B": "{{firstName}}, 3 min pour doubler vos réponses",
-                    "impact_potentiel": "élevé"
+                    "type_test": "email subject",
+                    "hypothese": "A subject with precise number increases open rate",
+                    "variante_A": "Current subject",
+                    "variante_B": "{{firstName}}, 3 min to double your replies",
+                    "impact_potentiel": "high"
                 }
             ],
-            "conseil_strategique": "Concentrez-vous d'abord sur l'open rate avant d'optimiser le corps.",
-            "_note": "⚠️ Suggestions de démonstration"
+            "conseil_strategique": "Focus on open rate first before optimizing the body.",
+            "_note": "⚠️ Demo suggestions"
         }
     
     def generate_variants(self, winning_content: dict, num_variants: int = 3) -> dict:
         return {
             "variantes_sujet": [
-                {"sujet": "{{firstName}}, question rapide sur {{companyName}}", "angle": "Personnalisation double"},
-                {"sujet": "2 min - idée pour {{companyName}}", "angle": "Temps court + valeur"},
+                {"sujet": "{{firstName}}, quick question about {{companyName}}", "angle": "Double personalization"},
+                {"sujet": "2 min - idea for {{companyName}}", "angle": "Short time + value"},
             ],
-            "_note": "⚠️ Variantes de démonstration"
+            "_note": "⚠️ Demo variants"
         }
