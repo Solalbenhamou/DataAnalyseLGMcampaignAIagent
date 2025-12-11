@@ -117,49 +117,49 @@ def render_sidebar():
             "LGM API Key",
             value=lgm_key_default or "",
             type="password",
-            help="Trouvez votre clé API dans LGM > Settings > Integrations & API"
+            help="Find your API key in LGM > Settings > Integrations & API"
         )
         
         gemini_api_key = st.text_input(
             "Gemini API Key",
             value=gemini_key_default or "",
             type="password",
-            help="Créez une clé sur Google AI Studio"
+            help="Create a key on Google AI Studio"
         )
         
         # Test connection button
-        if st.button("🔌 Tester la connexion LGM", use_container_width=True):
+        if st.button("🔌 Test LGM Connection", use_container_width=True):
             if lgm_api_key:
-                with st.spinner("Test de connexion..."):
+                with st.spinner("Testing connection..."):
                     client = LGMClient(lgm_api_key)
                     if client.test_connection():
-                        st.success("✅ Connexion LGM réussie!")
+                        st.success("✅ LGM connection successful!")
                         st.session_state.lgm_connected = True
                     else:
-                        st.error("❌ Échec de connexion. Vérifiez votre clé API.")
+                        st.error("❌ Connection failed. Check your API key.")
                         st.session_state.lgm_connected = False
             else:
-                st.warning("Entrez votre clé API LGM")
+                st.warning("Enter your LGM API key")
         
         st.markdown("---")
         
         # Demo mode
-        st.markdown("### 🎮 Mode Démo")
+        st.markdown("### 🎮 Demo Mode")
         demo_mode = st.checkbox(
-            "Utiliser des données de démo",
-            help="Testez le dashboard sans clé API"
+            "Use demo data",
+            help="Test the dashboard without API keys"
         )
         
         st.markdown("---")
         
         # About section
-        st.markdown("### ℹ️ À propos")
+        st.markdown("### ℹ️ About")
         st.markdown("""
-        **Campaign Analyzer** analyse vos campagnes LGM avec l'IA pour :
-        - 📊 Comparer les performances
-        - 🎯 Identifier les patterns gagnants
-        - 💡 Suggérer des optimisations
-        - 🧪 Proposer des A/B tests
+        **Campaign Analyzer** analyzes your LGM campaigns with AI to:
+        - 📊 Compare performance
+        - 🎯 Identify winning patterns
+        - 💡 Suggest optimizations
+        - 🧪 Propose A/B tests
         """)
         
         return lgm_api_key, gemini_api_key, demo_mode
@@ -283,7 +283,7 @@ def stats_to_dataframe(stats_list: list[CampaignStats]) -> pd.DataFrame:
 
 def render_metrics_overview(df: pd.DataFrame):
     """Render the metrics overview section"""
-    st.markdown("### 📊 Vue d'ensemble")
+    st.markdown("### 📊 Overview")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -293,11 +293,11 @@ def render_metrics_overview(df: pd.DataFrame):
     
     with col2:
         avg_open_rate = df["Open Rate"].mean()
-        st.metric("Open Rate Moyen", f"{avg_open_rate:.1f}%")
+        st.metric("Avg Open Rate", f"{avg_open_rate:.1f}%")
     
     with col3:
         avg_reply_rate = df["Reply Rate Global"].mean()
-        st.metric("Reply Rate Moyen", f"{avg_reply_rate:.1f}%")
+        st.metric("Avg Reply Rate", f"{avg_reply_rate:.1f}%")
     
     with col4:
         total_conversions = df["Conversions"].sum()
@@ -305,12 +305,12 @@ def render_metrics_overview(df: pd.DataFrame):
     
     with col5:
         avg_conversion = df["Conversion Rate"].mean()
-        st.metric("Conversion Moyen", f"{avg_conversion:.1f}%")
+        st.metric("Avg Conversion", f"{avg_conversion:.1f}%")
 
 
 def render_comparison_charts(df: pd.DataFrame):
     """Render comparison charts"""
-    st.markdown("### 📈 Comparaison des campagnes")
+    st.markdown("### 📈 Campaign Comparison")
     
     tab1, tab2, tab3 = st.tabs(["📧 Email", "💼 LinkedIn", "🎯 Global"])
     
@@ -372,7 +372,7 @@ def render_comparison_charts(df: pd.DataFrame):
 
 def render_ranking_table(df: pd.DataFrame):
     """Render the campaign ranking table"""
-    st.markdown("### 🏆 Classement des campagnes")
+    st.markdown("### 🏆 Campaign Ranking")
     
     # Calculate a composite score
     df_ranked = df.copy()
@@ -402,7 +402,7 @@ def render_ranking_table(df: pd.DataFrame):
 
 def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_content: dict):
     """Render the AI analysis section"""
-    st.markdown("### 🤖 Analyse IA")
+    st.markdown("### 🤖 AI Analysis")
     
     # Prepare data for analysis
     campaigns_data = []
@@ -418,11 +418,11 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
             "conversion_rate": stat.conversion_rate
         })
     
-    analysis_tabs = st.tabs(["📊 Analyse", "⚔️ Comparaison", "🧪 Suggestions A/B", "✨ Générer variantes"])
+    analysis_tabs = st.tabs(["📊 Analysis", "⚔️ Comparison", "🧪 A/B Suggestions", "✨ Generate Variants"])
     
     with analysis_tabs[0]:
-        if st.button("🔍 Lancer l'analyse complète", key="analyze_btn"):
-            with st.spinner("Analyse en cours avec Gemini..."):
+        if st.button("🔍 Run Full Analysis", key="analyze_btn"):
+            with st.spinner("Analyzing with Gemini..."):
                 results = analyzer.analyze_campaigns(campaigns_data, campaign_content)
                 st.session_state.analysis_results = results
         
@@ -430,29 +430,29 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
             render_analysis_results(st.session_state.analysis_results)
     
     with analysis_tabs[1]:
-        if st.button("⚔️ Comparer les campagnes", key="compare_btn"):
-            with st.spinner("Comparaison en cours..."):
+        if st.button("⚔️ Compare Campaigns", key="compare_btn"):
+            with st.spinner("Comparing..."):
                 results = analyzer.compare_campaigns(campaigns_data, campaign_content)
                 render_comparison_results(results)
     
     with analysis_tabs[2]:
-        if st.button("🧪 Suggérer des A/B tests", key="suggest_btn"):
-            with st.spinner("Génération des suggestions..."):
+        if st.button("🧪 Suggest A/B Tests", key="suggest_btn"):
+            with st.spinner("Generating suggestions..."):
                 results = analyzer.suggest_next_tests(campaigns_data, campaign_content)
                 render_suggestions_results(results)
     
     with analysis_tabs[3]:
-        st.markdown("Sélectionnez la campagne gagnante pour générer des variantes:")
+        st.markdown("Select the winning campaign to generate variants:")
         winner = st.selectbox(
-            "Campagne de référence",
+            "Reference campaign",
             options=[stat.campaign_name for stat in stats_list]
         )
         
-        num_variants = st.slider("Nombre de variantes", 2, 5, 3)
+        num_variants = st.slider("Number of variants", 2, 5, 3)
         
-        if st.button("✨ Générer des variantes", key="variants_btn"):
+        if st.button("✨ Generate Variants", key="variants_btn"):
             winning_content = campaign_content.get(winner, {})
-            with st.spinner("Génération des variantes..."):
+            with st.spinner("Generating variants..."):
                 results = analyzer.generate_variants(winning_content, num_variants)
                 render_variants_results(results)
 
@@ -460,9 +460,9 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
 def render_analysis_results(results: dict):
     """Render the analysis results"""
     if "error" in results:
-        st.error(f"Erreur d'analyse: {results['error']}")
+        st.error(f"Analysis error: {results['error']}")
         if "raw_response" in results:
-            with st.expander("Réponse brute"):
+            with st.expander("Raw response"):
                 st.text(results["raw_response"])
         return
     
@@ -472,35 +472,35 @@ def render_analysis_results(results: dict):
     
     # Global summary
     if "resume_global" in results:
-        st.markdown("#### 📋 Résumé global")
+        st.markdown("#### 📋 Global Summary")
         summary = results["resume_global"]
         col1, col2 = st.columns(2)
         with col1:
-            st.success(f"🏆 **Meilleure campagne:** {summary.get('meilleure_campagne', 'N/A')}")
+            st.success(f"🏆 **Best campaign:** {summary.get('meilleure_campagne', 'N/A')}")
         with col2:
-            st.error(f"📉 **À améliorer:** {summary.get('pire_campagne', 'N/A')}")
-        st.info(f"📊 **Tendance:** {summary.get('tendance_generale', 'N/A')}")
+            st.error(f"📉 **Needs improvement:** {summary.get('pire_campagne', 'N/A')}")
+        st.info(f"📊 **Trend:** {summary.get('tendance_generale', 'N/A')}")
     
     # Open rate analysis
     if "analyse_open_rate" in results:
-        st.markdown("#### 📧 Analyse Open Rate")
+        st.markdown("#### 📧 Open Rate Analysis")
         oar = results["analyse_open_rate"]
-        st.markdown(f"**Moyenne:** {oar.get('moyenne', 'N/A')}")
-        st.markdown(f"**Meilleur sujet:** `{oar.get('meilleur_sujet', 'N/A')}`")
+        st.markdown(f"**Average:** {oar.get('moyenne', 'N/A')}")
+        st.markdown(f"**Best subject:** `{oar.get('meilleur_sujet', 'N/A')}`")
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("✅ **Patterns gagnants:**")
+            st.markdown("✅ **Winning patterns:**")
             for p in oar.get("patterns_gagnants", []):
                 st.markdown(f"- {p}")
         with col2:
-            st.markdown("❌ **Patterns perdants:**")
+            st.markdown("❌ **Losing patterns:**")
             for p in oar.get("patterns_perdants", []):
                 st.markdown(f"- {p}")
     
     # Patterns identified
     if "patterns_identifies" in results:
-        st.markdown("#### 🔍 Patterns identifiés")
+        st.markdown("#### 🔍 Patterns Identified")
         patterns = results["patterns_identifies"]
         
         for category, items in patterns.items():
@@ -510,9 +510,9 @@ def render_analysis_results(results: dict):
     
     # Global score
     if "score_global" in results:
-        st.markdown("#### 🎯 Score global")
+        st.markdown("#### 🎯 Global Score")
         score = results["score_global"]
-        st.markdown(f"**Note:** {score.get('note', 'N/A')}")
+        st.markdown(f"**Score:** {score.get('note', 'N/A')}")
         st.markdown(f"**Justification:** {score.get('justification', 'N/A')}")
 
 
@@ -596,7 +596,7 @@ def render_variants_results(results: dict):
 
 def render_data_table(df: pd.DataFrame):
     """Render the full data table"""
-    st.markdown("### 📋 Données complètes")
+    st.markdown("### 📋 Full Data")
     
     # Format percentages
     format_dict = {
@@ -618,7 +618,7 @@ def render_data_table(df: pd.DataFrame):
     # Export button
     csv = df.to_csv(index=False)
     st.download_button(
-        label="📥 Exporter en CSV",
+        label="📥 Export to CSV",
         data=csv,
         file_name=f"campaign_analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
         mime="text/csv"
