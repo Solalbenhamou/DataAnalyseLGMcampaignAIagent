@@ -142,34 +142,35 @@ class LGMClient:
     
     def _parse_campaign_stats(self, campaign_id: str, campaign_name: str, stats: dict) -> CampaignStats:
         """Parse raw API stats into CampaignStats object"""
-        # LGM API response structure - adapt based on actual response
-        email_stats = stats.get("email", stats.get("emails", {}))
-        linkedin_stats = stats.get("linkedin", stats.get("linkedIn", {}))
-        global_stats = stats.get("global", stats.get("summary", stats))
+        # Get engagementStats from response
+        engagement = stats.get("engagementStats", stats)
         
-        def get_value(*keys, default=0):
-            for key in keys:
-                if key in stats:
-                    return stats[key]
-                if key in global_stats:
-                    return global_stats[key]
-                if key in email_stats:
-                    return email_stats[key]
-            return default
+        # Get channel stats
+        channel = engagement.get("channel", {})
+        email_channel = channel.get("email", {})
+        linkedin_channel = channel.get("linkedin", {})
+        linkedin_message = linkedin_channel.get("message", {})
+        linkedin_request = linkedin_channel.get("contactRequest", {})
+        
+        # Get relations stats (LinkedIn connections)
+        relations = engagement.get("relations", {})
+        
+        # Get replies stats
+        replies = engagement.get("replies", {})
         
         return CampaignStats(
             campaign_id=campaign_id,
             campaign_name=campaign_name,
-            total_leads=get_value("totalLeads", "leads", "leadsCount", "total_leads"),
-            emails_sent=get_value("emailsSent", "sent", "emails_sent", "mailsSent"),
-            emails_opened=get_value("emailsOpened", "opened", "emails_opened", "mailsOpened"),
-            emails_clicked=get_value("emailsClicked", "clicked", "emails_clicked", "mailsClicked"),
-            emails_replied=get_value("emailsReplied", "replied", "emails_replied", "mailsReplied"),
-            linkedin_sent=get_value("linkedinSent", "invitesSent", "linkedin_sent", "connectionsSent"),
-            linkedin_accepted=get_value("linkedinAccepted", "invitesAccepted", "linkedin_accepted", "connectionsAccepted"),
-            linkedin_replied=get_value("linkedinReplied", "messagesReplied", "linkedin_replied"),
-            total_replies=get_value("totalReplies", "replies", "total_replies", "replied"),
-            total_conversions=get_value("conversions", "converted", "total_conversions", "deals")
+            total_leads=engagement.get("audienceSize", 0),
+            emails_sent=email_channel.get("sent", 0),
+            emails_opened=email_channel.get("opened", 0),
+            emails_clicked=email_channel.get("clicked", 0),
+            emails_replied=email_channel.get("replied", 0),
+            linkedin_sent=linkedin_request.get("sent", relations.get("requestSent", 0)),
+            linkedin_accepted=relations.get("newRelations", 0) + relations.get("alreadyConnected", 0),
+            linkedin_replied=replies.get("linkedinReplied", linkedin_message.get("replied", 0)),
+            total_replies=replies.get("replied", engagement.get("replies", {}).get("replied", 0)),
+            total_conversions=engagement.get("converted", 0)
         )
 
 
