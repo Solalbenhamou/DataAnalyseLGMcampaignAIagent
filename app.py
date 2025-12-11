@@ -258,20 +258,20 @@ def stats_to_dataframe(stats_list: list[CampaignStats]) -> pd.DataFrame:
     data = []
     for stat in stats_list:
         data.append({
-            "Campagne": stat.campaign_name,
+            "Campaign": stat.campaign_name,
             "ID": stat.campaign_id,
             "Leads": stat.total_leads,
-            "Emails envoyés": stat.emails_sent,
-            "Emails ouverts": stat.emails_opened,
+            "Emails sent": stat.emails_sent,
+            "Emails opened": stat.emails_opened,
             "Open Rate": stat.open_rate,
-            "Emails cliqués": stat.emails_clicked,
+            "Emails clicked": stat.emails_clicked,
             "CTR": stat.click_rate,
-            "Réponses Email": stat.emails_replied,
+            "Emails replied": stat.emails_replied,
             "Reply Rate Email": stat.email_reply_rate,
-            "LinkedIn envoyés": stat.linkedin_sent,
-            "LinkedIn acceptés": stat.linkedin_accepted,
+            "LinkedIn sent": stat.linkedin_sent,
+            "LinkedIn accepted": stat.linkedin_accepted,
             "Acceptance Rate": stat.linkedin_acceptance_rate,
-            "Réponses LinkedIn": stat.linkedin_replied,
+            "LinkedIn replied": stat.linkedin_replied,
             "Reply Rate LinkedIn": stat.linkedin_reply_rate,
             "Total Réponses": stat.total_replies,
             "Reply Rate Global": stat.overall_reply_rate,
@@ -319,11 +319,11 @@ def render_comparison_charts(df: pd.DataFrame):
         fig = make_subplots(rows=1, cols=2, subplot_titles=("Open Rate", "Reply Rate Email"))
         
         fig.add_trace(
-            go.Bar(name="Open Rate", x=df["Campagne"], y=df["Open Rate"], marker_color="#3b82f6"),
+            go.Bar(name="Open Rate", x=df["Campaign"], y=df["Open Rate"], marker_color="#3b82f6"),
             row=1, col=1
         )
         fig.add_trace(
-            go.Bar(name="Reply Rate", x=df["Campagne"], y=df["Reply Rate Email"], marker_color="#10b981"),
+            go.Bar(name="Reply Rate", x=df["Campaign"], y=df["Reply Rate Email"], marker_color="#10b981"),
             row=1, col=2
         )
         
@@ -335,11 +335,11 @@ def render_comparison_charts(df: pd.DataFrame):
         fig = make_subplots(rows=1, cols=2, subplot_titles=("Acceptance Rate", "Reply Rate LinkedIn"))
         
         fig.add_trace(
-            go.Bar(name="Acceptance", x=df["Campagne"], y=df["Acceptance Rate"], marker_color="#8b5cf6"),
+            go.Bar(name="Acceptance", x=df["Campaign"], y=df["Acceptance Rate"], marker_color="#8b5cf6"),
             row=1, col=1
         )
         fig.add_trace(
-            go.Bar(name="Reply Rate", x=df["Campagne"], y=df["Reply Rate LinkedIn"], marker_color="#f59e0b"),
+            go.Bar(name="Reply Rate", x=df["Campaign"], y=df["Reply Rate LinkedIn"], marker_color="#f59e0b"),
             row=1, col=2
         )
         
@@ -358,7 +358,7 @@ def render_comparison_charts(df: pd.DataFrame):
                 r=[row["Open Rate"], row["Reply Rate Global"], row["Conversion Rate"] * 5, row["Acceptance Rate"]],
                 theta=categories,
                 fill='toself',
-                name=row["Campagne"][:20] + "..." if len(row["Campagne"]) > 20 else row["Campagne"],
+                name=row["Campaign"][:20] + "..." if len(row["Campaign"]) > 20 else row["Campaign"],
                 line_color=colors[i % len(colors)]
             ))
         
@@ -386,7 +386,7 @@ def render_ranking_table(df: pd.DataFrame):
     df_ranked.insert(0, "Rang", range(1, len(df_ranked) + 1))
     
     # Style the dataframe
-    display_cols = ["Rang", "Campagne", "Leads", "Open Rate", "Reply Rate Global", "Conversion Rate", "Score"]
+    display_cols = ["Rang", "Campaign", "Leads", "Open Rate", "Reply Rate Global", "Conversion Rate", "Score"]
     
     st.dataframe(
         df_ranked[display_cols].style.format({
