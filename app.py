@@ -266,15 +266,15 @@ def stats_to_dataframe(stats_list: list[CampaignStats]) -> pd.DataFrame:
             "Open Rate": stat.open_rate,
             "Emails Clicked": stat.emails_clicked,
             "CTR": stat.click_rate,
-            "Emails Replied": stat.emails_replied,
-            "Reply Rate Email": stat.email_reply_rate,
+            "Email Replies": stat.emails_replied,
+            "Email Reply Rate": stat.email_reply_rate,
             "LinkedIn Sent": stat.linkedin_sent,
             "LinkedIn Accepted": stat.linkedin_accepted,
             "Acceptance Rate": stat.linkedin_acceptance_rate,
-            "LinkedIn Replied": stat.linkedin_replied,
-            "Reply Rate LinkedIn": stat.linkedin_reply_rate,
-            "Total Responses": stat.total_replies,
-            "Reply Rate Global": stat.overall_reply_rate,
+            "LinkedIn Replies": stat.linkedin_replied,
+            "LinkedIn Reply Rate": stat.linkedin_reply_rate,
+            "Total Replies": stat.total_replies,
+            "Global Reply Rate": stat.overall_reply_rate,
             "Conversions": stat.total_conversions,
             "Conversion Rate": stat.conversion_rate
         })
@@ -296,7 +296,7 @@ def render_metrics_overview(df: pd.DataFrame):
         st.metric("Avg Open Rate", f"{avg_open_rate:.1f}%")
     
     with col3:
-        avg_reply_rate = df["Reply Rate Global"].mean()
+        avg_reply_rate = df["Global Reply Rate"].mean()
         st.metric("Avg Reply Rate", f"{avg_reply_rate:.1f}%")
     
     with col4:
@@ -316,14 +316,14 @@ def render_comparison_charts(df: pd.DataFrame):
     
     with tab1:
         # Email metrics comparison
-        fig = make_subplots(rows=1, cols=2, subplot_titles=("Open Rate", "Reply Rate Email"))
+        fig = make_subplots(rows=1, cols=2, subplot_titles=("Open Rate", "Email Reply Rate"))
         
         fig.add_trace(
             go.Bar(name="Open Rate", x=df["Campaign"], y=df["Open Rate"], marker_color="#3b82f6"),
             row=1, col=1
         )
         fig.add_trace(
-            go.Bar(name="Reply Rate", x=df["Campaign"], y=df["Reply Rate Email"], marker_color="#10b981"),
+            go.Bar(name="Reply Rate", x=df["Campaign"], y=df["Email Reply Rate"], marker_color="#10b981"),
             row=1, col=2
         )
         
@@ -332,14 +332,14 @@ def render_comparison_charts(df: pd.DataFrame):
     
     with tab2:
         # LinkedIn metrics comparison
-        fig = make_subplots(rows=1, cols=2, subplot_titles=("Acceptance Rate", "Reply Rate LinkedIn"))
+        fig = make_subplots(rows=1, cols=2, subplot_titles=("Acceptance Rate", "LinkedIn Reply Rate"))
         
         fig.add_trace(
             go.Bar(name="Acceptance", x=df["Campaign"], y=df["Acceptance Rate"], marker_color="#8b5cf6"),
             row=1, col=1
         )
         fig.add_trace(
-            go.Bar(name="Reply Rate", x=df["Campaign"], y=df["Reply Rate LinkedIn"], marker_color="#f59e0b"),
+            go.Bar(name="Reply Rate", x=df["Campaign"], y=df["LinkedIn Reply Rate"], marker_color="#f59e0b"),
             row=1, col=2
         )
         
@@ -348,14 +348,14 @@ def render_comparison_charts(df: pd.DataFrame):
     
     with tab3:
         # Global comparison radar chart
-        categories = ["Open Rate", "Reply Rate Global", "Conversion Rate", "Acceptance Rate"]
+        categories = ["Open Rate", "Global Reply Rate", "Conversion Rate", "Acceptance Rate"]
         
         fig = go.Figure()
         
         colors = px.colors.qualitative.Set2
         for i, row in df.iterrows():
             fig.add_trace(go.Scatterpolar(
-                r=[row["Open Rate"], row["Reply Rate Global"], row["Conversion Rate"] * 5, row["Acceptance Rate"]],
+                r=[row["Open Rate"], row["Global Reply Rate"], row["Conversion Rate"] * 5, row["Acceptance Rate"]],
                 theta=categories,
                 fill='toself',
                 name=row["Campaign"][:20] + "..." if len(row["Campaign"]) > 20 else row["Campaign"],
@@ -378,20 +378,20 @@ def render_ranking_table(df: pd.DataFrame):
     df_ranked = df.copy()
     df_ranked["Score"] = (
         df_ranked["Open Rate"] * 0.2 +
-        df_ranked["Reply Rate Global"] * 0.4 +
+        df_ranked["Global Reply Rate"] * 0.4 +
         df_ranked["Conversion Rate"] * 0.4
     ).round(2)
     
     df_ranked = df_ranked.sort_values("Score", ascending=False)
-    df_ranked.insert(0, "Rang", range(1, len(df_ranked) + 1))
+    df_ranked.insert(0, "Rank", range(1, len(df_ranked) + 1))
     
     # Style the dataframe
-    display_cols = ["Rang", "Campaign", "Leads", "Open Rate", "Reply Rate Global", "Conversion Rate", "Score"]
+    display_cols = ["Rank", "Campaign", "Leads", "Open Rate", "Global Reply Rate", "Conversion Rate", "Score"]
     
     st.dataframe(
         df_ranked[display_cols].style.format({
             "Open Rate": "{:.1f}%",
-            "Reply Rate Global": "{:.1f}%",
+            "Global Reply Rate": "{:.1f}%",
             "Conversion Rate": "{:.1f}%",
             "Score": "{:.2f}"
         }).background_gradient(subset=["Score"], cmap="Greens"),
@@ -602,10 +602,10 @@ def render_data_table(df: pd.DataFrame):
     format_dict = {
         "Open Rate": "{:.1f}%",
         "CTR": "{:.1f}%",
-        "Reply Rate Email": "{:.1f}%",
+        "Email Reply Rate": "{:.1f}%",
         "Acceptance Rate": "{:.1f}%",
-        "Reply Rate LinkedIn": "{:.1f}%",
-        "Reply Rate Global": "{:.1f}%",
+        "LinkedIn Reply Rate": "{:.1f}%",
+        "Global Reply Rate": "{:.1f}%",
         "Conversion Rate": "{:.1f}%"
     }
     
@@ -649,57 +649,84 @@ def main():
         
         client = LGMClient(lgm_api_key)
         
-        # Campaign ID input section
+        # Campaign Selection section
         st.markdown("### 🎯 Campaign Selection")
         
-        st.markdown("""
-        <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
-        <strong>💡 How to find your Campaign IDs?</strong><br>
-        1. Go to <a href="https://app.lagrowthmachine.com" target="_blank">app.lagrowthmachine.com</a><br>
-        2. Open a campaign<br>
-        3. The ID is in the URL: <code>app.lagrowthmachine.com/campaigns/<strong>CAMPAIGN_ID</strong>/...</code>
-        </div>
-        """, unsafe_allow_html=True)
+        # Load campaigns from API
+        if "available_campaigns" not in st.session_state or st.button("🔄 Refresh campaign list", use_container_width=False):
+            try:
+                with st.spinner("Loading campaigns from LGM..."):
+                    campaigns = client.get_all_campaigns()
+                    st.session_state.available_campaigns = campaigns
+            except Exception as e:
+                st.error(f"Error loading campaigns: {str(e)}")
+                st.session_state.available_campaigns = []
         
-        # Text area for campaign IDs
-        campaign_input = st.text_area(
-            "Enter your Campaign IDs (one per line)",
-            placeholder="example-campaign-id-1\nexample-campaign-id-2\nexample-campaign-id-3",
-            height=150,
-            help="Copy the IDs from your LGM campaign URLs"
-        )
+        available_campaigns = st.session_state.get("available_campaigns", [])
         
-        # Optional: Campaign names
-        with st.expander("➕ Add custom names (optional)"):
-            st.markdown("Format: `campaign_id:Campaign Name` (one per line)")
-            names_input = st.text_area(
-                "Campaign names",
-                placeholder="campaign-id-1:Email > LinkedIn CEO #1\ncampaign-id-2:LinkedIn > Email CMO #1",
-                height=100
+        if not available_campaigns:
+            st.warning("⚠️ No campaigns found. Check your API key or create campaigns in LGM first.")
+            return
+        
+        # Filter options
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            status_filter = st.selectbox(
+                "Filter by status",
+                options=["All", "RUNNING", "PAUSED"],
+                index=0
+            )
+        with col2:
+            sort_by = st.selectbox(
+                "Sort by",
+                options=["Name (A-Z)", "Name (Z-A)", "Leads (High-Low)", "Reply Rate (High-Low)"],
+                index=0
             )
         
-        # Parse campaign IDs
-        campaign_ids = []
-        campaign_names = {}
+        # Apply filters
+        filtered_campaigns = available_campaigns
+        if status_filter != "All":
+            filtered_campaigns = [c for c in filtered_campaigns if c.get("status") == status_filter]
         
-        if campaign_input:
-            campaign_ids = [cid.strip() for cid in campaign_input.strip().split("\n") if cid.strip()]
+        # Apply sorting
+        if sort_by == "Name (A-Z)":
+            filtered_campaigns = sorted(filtered_campaigns, key=lambda x: x.get("name", "").lower())
+        elif sort_by == "Name (Z-A)":
+            filtered_campaigns = sorted(filtered_campaigns, key=lambda x: x.get("name", "").lower(), reverse=True)
+        elif sort_by == "Leads (High-Low)":
+            filtered_campaigns = sorted(filtered_campaigns, key=lambda x: x.get("leadsCount", 0), reverse=True)
+        elif sort_by == "Reply Rate (High-Low)":
+            filtered_campaigns = sorted(filtered_campaigns, key=lambda x: x.get("replyRatePercent", 0), reverse=True)
         
-        if names_input:
-            for line in names_input.strip().split("\n"):
-                if ":" in line:
-                    cid, name = line.split(":", 1)
-                    campaign_names[cid.strip()] = name.strip()
+        # Build options for multiselect
+        campaign_options = {
+            f"{c['name']} ({c['leadsCount']} leads, {c.get('replyRatePercent', 0)}% reply) - {c['status']}": c['id']
+            for c in filtered_campaigns
+        }
         
-        if not campaign_ids:
-            st.warning("⚠️ Enter at least one Campaign ID to start the analysis.")
+        # Multi-select dropdown
+        selected_labels = st.multiselect(
+            "Select campaigns to analyze",
+            options=list(campaign_options.keys()),
+            help="Select one or more campaigns to compare and analyze"
+        )
+        
+        # Get selected IDs and names
+        selected_campaign_ids = [campaign_options[label] for label in selected_labels]
+        campaign_names = {c['id']: c['name'] for c in filtered_campaigns}
+        
+        # Show selection summary
+        if selected_labels:
+            st.success(f"✅ {len(selected_labels)} campaign(s) selected")
+        else:
+            st.warning("⚠️ Select at least one campaign to start the analysis.")
             return
         
         # Fetch stats button
         if st.button("📊 Fetch Statistics", type="primary", use_container_width=True):
             try:
-                with st.spinner(f"Fetching stats for {len(campaign_ids)} campaign(s)..."):
-                    stats_list = client.get_campaigns_stats_by_ids(campaign_ids, campaign_names)
+                with st.spinner(f"Fetching stats for {len(selected_campaign_ids)} campaign(s)..."):
+                    stats_list = client.get_campaigns_stats_by_ids(selected_campaign_ids, campaign_names)
                     st.session_state.campaign_stats = stats_list
                 st.success(f"✅ {len(stats_list)} campaign(s) loaded successfully!")
             except LGMAPIError as e:

@@ -114,6 +114,52 @@ class LGMClient:
         """Get statistics for a specific campaign"""
         return self._make_request(f"campaigns/{campaign_id}/stats")
     
+    def get_campaigns(self, skip: int = 0, limit: int = 25) -> list[dict]:
+        """
+        Get all campaigns with their names and IDs
+        
+        Args:
+            skip: Number of items to skip (for pagination)
+            limit: Number of items to return (max 25)
+        
+        Returns:
+            List of campaign dictionaries with id, name, status, etc.
+        """
+        endpoint = f"{self.base_url}/campaigns"
+        params = {
+            "apikey": self.api_key,
+            "skip": skip,
+            "limit": limit
+        }
+        
+        response = requests.get(endpoint, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        return data.get("campaigns", [])
+    
+    def get_all_campaigns(self) -> list[dict]:
+        """
+        Get all campaigns (handles pagination automatically)
+        
+        Returns:
+            List of all campaign dictionaries
+        """
+        all_campaigns = []
+        skip = 0
+        limit = 25
+        
+        while True:
+            campaigns = self.get_campaigns(skip=skip, limit=limit)
+            if not campaigns:
+                break
+            all_campaigns.extend(campaigns)
+            if len(campaigns) < limit:
+                break
+            skip += limit
+        
+        return all_campaigns
+
     def get_campaigns_stats_by_ids(self, campaign_ids: list[str], campaign_names: dict = None) -> list[CampaignStats]:
         """
         Get statistics for multiple campaigns by their IDs
