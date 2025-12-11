@@ -125,7 +125,7 @@ class LGMClient:
         Returns:
             List of campaign dictionaries with id, name, status, etc.
         """
-        endpoint = f"{self.base_url}/campaigns"
+        endpoint = f"{self.BASE_URL}/campaigns"
         params = {
             "apikey": self.api_key,
             "skip": skip,
