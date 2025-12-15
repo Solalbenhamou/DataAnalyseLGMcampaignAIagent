@@ -17,10 +17,15 @@ class GeminiAnalyzer:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
         self.business_context = business_context or {
-            "product": "AI Agent",
-            "goal": "Connect with leads → Book meetings → Close deals",
-            "target": "Decision makers (CEOs, CTOs, Founders)",
-            "industry": "B2B SaaS"
+            "product": "AI Agent for E-commerce",
+            "product_description": "An intelligent AI agent that monitors, detects, and alerts e-commerce merchants about critical events affecting their online stores. Features include: real-time Slack/dashboard alerts, ML-powered anomaly detection with seasonality awareness, store-specific calibration, statistical relevance filtering (no false positives), and AI chatbot for alert explanations.",
+            "key_differentiators": "1) Only statistically significant alerts (no noise), 2) Personalized detection per store, 3) Seasonality-aware, 4) Works in Slack + Dashboard, 5) AI explains the 'why' behind alerts, 6) Roadmap to auto-fix issues",
+            "goal": "Connect with e-commerce decision makers → Book demo/meeting → Close deals",
+            "target": "E-commerce merchants and store owners (primarily Shopify), DTC brands, E-commerce managers, CTOs/Technical leads at online retailers",
+            "pain_points": "Site crashes going unnoticed, payment failures, traffic drops, too many false alerts from other tools, lack of context on why issues happen, manual monitoring is time-consuming",
+            "industry": "E-commerce / SaaS",
+            "integrations": "Shopify (primary), Slack, Klaviyo (email), Google Analytics/Ads, Facebook/Meta Ads, Yotpo (reviews)",
+            "additional": ""
         }
     
     def set_business_context(self, context: dict):
@@ -30,10 +35,13 @@ class GeminiAnalyzer:
     def _get_context_prompt(self) -> str:
         """Build the business context section for prompts"""
         return f"""## BUSINESS CONTEXT:
-- Product/Service: {self.business_context.get('product', 'AI Agent')}
-- Goal: {self.business_context.get('goal', 'Connect → Meeting → Close')}
-- Target ICP: {self.business_context.get('target', 'Decision makers')}
-- Industry: {self.business_context.get('industry', 'B2B SaaS')}
+- Product: {self.business_context.get('product', 'AI Agent for E-commerce')}
+- What it does: {self.business_context.get('product_description', 'AI-powered monitoring and alerting for e-commerce stores')}
+- Key differentiators: {self.business_context.get('key_differentiators', 'Statistically significant alerts only, personalized per store, seasonality-aware')}
+- Sales Goal: {self.business_context.get('goal', 'Connect → Demo → Close')}
+- Target ICP: {self.business_context.get('target', 'E-commerce merchants, Shopify store owners, DTC brands')}
+- Pain points we solve: {self.business_context.get('pain_points', 'Unnoticed site issues, false alerts, manual monitoring')}
+- Industry: {self.business_context.get('industry', 'E-commerce / SaaS')}
 - Additional info: {self.business_context.get('additional', 'None')}
 """
 

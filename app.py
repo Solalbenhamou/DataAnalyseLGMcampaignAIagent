@@ -155,27 +155,33 @@ def render_sidebar():
         
         business_preset = st.selectbox(
             "Business preset",
-            options=["AI Agent Sales", "Custom"],
+            options=["AI Agent for E-commerce", "Custom"],
             index=0,
             help="Select your business type for tailored AI analysis"
         )
         
-        if business_preset == "AI Agent Sales":
+        if business_preset == "AI Agent for E-commerce":
             business_context = {
-                "product": "AI Agent",
-                "goal": "Connect with leads → Book meetings → Close deals",
-                "target": "Decision makers (CEOs, CTOs, Founders)",
-                "industry": "B2B SaaS",
+                "product": "AI Agent for E-commerce",
+                "product_description": "An intelligent AI agent that monitors, detects, and alerts e-commerce merchants about critical events affecting their online stores. Features: real-time Slack/dashboard alerts, ML-powered anomaly detection with seasonality awareness, store-specific calibration, statistical relevance filtering, AI chatbot for alert explanations.",
+                "key_differentiators": "1) Only statistically significant alerts (no noise), 2) Personalized detection per store, 3) Seasonality-aware, 4) Works in Slack + Dashboard, 5) AI explains the 'why' behind alerts",
+                "goal": "Connect with e-commerce decision makers → Book demo/meeting → Close deals",
+                "target": "E-commerce merchants, Shopify store owners, DTC brands, E-commerce managers, CTOs at online retailers",
+                "pain_points": "Site crashes going unnoticed, payment failures, traffic drops, too many false alerts, lack of context on issues, manual monitoring",
+                "industry": "E-commerce / SaaS",
                 "additional": ""
             }
         else:
             with st.expander("📝 Custom business context"):
                 business_context = {
-                    "product": st.text_input("Product/Service", value="AI Agent"),
-                    "goal": st.text_input("Goal", value="Connect → Meeting → Close"),
-                    "target": st.text_input("Target ICP", value="Decision makers"),
-                    "industry": st.text_input("Industry", value="B2B SaaS"),
-                    "additional": st.text_area("Additional context", value="", height=80)
+                    "product": st.text_input("Product/Service", value="AI Agent for E-commerce"),
+                    "product_description": st.text_area("Product description", value="AI-powered monitoring for e-commerce stores", height=80),
+                    "key_differentiators": st.text_area("Key differentiators", value="Statistically significant alerts only", height=60),
+                    "goal": st.text_input("Sales goal", value="Connect → Demo → Close"),
+                    "target": st.text_input("Target ICP", value="E-commerce merchants, Shopify store owners"),
+                    "pain_points": st.text_input("Pain points you solve", value="Unnoticed site issues, false alerts"),
+                    "industry": st.text_input("Industry", value="E-commerce / SaaS"),
+                    "additional": st.text_area("Additional context", value="", height=60)
                 }
         
         st.session_state.business_context = business_context
