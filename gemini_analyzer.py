@@ -91,260 +91,152 @@ class GeminiAnalyzer:
     def _build_copywriting_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
         """Build prompt for deep copywriting analysis"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str) if templates_by_campaign else "No templates available"
         
-        return f"""You are a world-class B2B copywriter and growth expert. Analyze the MESSAGE CONTENT of these outreach campaigns.
-
-IMPORTANT: Respond ENTIRELY in English. Focus on ACTIONABLE copywriting insights, not just stats.
+        return f"""Analyze these B2B outreach campaigns. Respond ONLY with valid JSON, no other text.
 
 {self._get_context_prompt()}
 
-## CAMPAIGN PERFORMANCE DATA:
+CAMPAIGN DATA:
 {data_str}
 
-## MESSAGE TEMPLATES (the actual copy used):
+MESSAGE TEMPLATES:
 {templates_str}
 
-## YOUR TASK:
-Analyze the COPYWRITING - not the stats. I can see the stats myself. 
-Tell me WHY certain messages work and others don't. Be specific and actionable.
-
-Provide a JSON response:
-
+Respond with this exact JSON structure:
 {{
     "executive_summary": {{
-        "main_insight": "The #1 copywriting insight from this data",
-        "biggest_opportunity": "The biggest improvement opportunity",
-        "quick_win": "One change that could improve results immediately"
+        "main_insight": "string",
+        "biggest_opportunity": "string",
+        "quick_win": "string"
     }},
     "hook_analysis": {{
         "best_hooks": [
-            {{
-                "hook": "The exact opening line that works",
-                "campaign": "campaign name",
-                "reply_rate": "X%",
-                "why_it_works": "Psychological reason it works"
-            }}
+            {{"hook": "string", "campaign": "string", "reply_rate": "string", "why_it_works": "string"}}
         ],
         "worst_hooks": [
-            {{
-                "hook": "Opening line that doesn't work",
-                "campaign": "campaign name", 
-                "reply_rate": "X%",
-                "why_it_fails": "Why this doesn't resonate"
-            }}
+            {{"hook": "string", "campaign": "string", "reply_rate": "string", "why_it_fails": "string"}}
         ],
-        "hook_patterns": ["Pattern 1 that correlates with high replies", "Pattern 2"]
+        "hook_patterns": ["string"]
     }},
     "cta_analysis": {{
-        "best_ctas": ["CTA that gets replies"],
-        "worst_ctas": ["CTA that doesn't work"],
-        "recommendations": ["Specific CTA improvements"]
-    }},
-    "tone_and_style": {{
-        "winning_tone": "Description of tone that works (casual, professional, etc.)",
-        "optimal_length": "Short/Medium/Long with specific word count",
-        "personalization_impact": "How personalization affects results"
-    }},
-    "channel_specific": {{
-        "linkedin": {{
-            "what_works": ["LinkedIn-specific insight"],
-            "what_to_avoid": ["What doesn't work on LinkedIn"],
-            "ideal_structure": "Recommended message structure"
-        }},
-        "email": {{
-            "subject_line_insights": ["What makes subjects work"],
-            "body_insights": ["What makes bodies work"],
-            "ideal_structure": "Recommended email structure"
-        }}
+        "best_ctas": ["string"],
+        "worst_ctas": ["string"],
+        "recommendations": ["string"]
     }},
     "message_improvements": [
         {{
-            "original_message": "Current message that underperforms",
-            "campaign": "campaign name",
-            "current_reply_rate": "X%",
-            "improved_version": "Your rewritten version",
-            "changes_made": ["Change 1", "Change 2"],
-            "expected_improvement": "Why this should perform better"
+            "original_message": "string",
+            "campaign": "string",
+            "current_reply_rate": "string",
+            "improved_version": "string",
+            "changes_made": ["string"],
+            "expected_improvement": "string"
         }}
     ]
 }}
 
-Be SPECIFIC. Quote actual messages. Give concrete examples. No generic advice."""
+IMPORTANT: Output ONLY the JSON object. No markdown, no explanation, no code blocks. Just the raw JSON."""
 
     def _build_strategic_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
         """Build prompt for strategic recommendations"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str) if templates_by_campaign else "No templates available"
         
-        return f"""You are a strategic growth consultant. Based on these campaign results, provide strategic recommendations.
-
-IMPORTANT: Respond ENTIRELY in English. Focus on STRATEGY, not tactics.
+        return f"""Provide strategic recommendations for these B2B campaigns. Respond ONLY with valid JSON.
 
 {self._get_context_prompt()}
 
-## CAMPAIGN DATA:
+CAMPAIGN DATA:
 {data_str}
 
-## MESSAGE TEMPLATES:
+MESSAGE TEMPLATES:
 {templates_str}
 
-## YOUR TASK:
-Provide strategic recommendations to optimize the funnel: Connect → Meeting → Close
-
-Provide a JSON response:
-
+Respond with this exact JSON structure:
 {{
     "funnel_analysis": {{
         "connection_to_reply": {{
-            "current_rate": "X%",
-            "benchmark": "Industry benchmark",
-            "gap_analysis": "Where we're losing people",
+            "current_rate": "string",
+            "benchmark": "string",
+            "gap_analysis": "string",
             "priority": "high/medium/low"
-        }},
-        "reply_to_meeting": {{
-            "estimated_rate": "X%",
-            "bottleneck": "What's preventing conversions",
-            "recommendation": "How to improve"
         }}
     }},
     "channel_strategy": {{
-        "primary_channel": "LinkedIn or Email",
-        "reasoning": "Why this channel should be primary",
-        "channel_mix": "Recommended % split",
-        "sequence_recommendation": "LinkedIn first then Email, or vice versa"
-    }},
-    "audience_insights": {{
-        "best_performing_segment": "Which audience/campaign type works best",
-        "underperforming_segment": "Which to pause or fix",
-        "expansion_opportunity": "New segments to test"
-    }},
-    "90_day_roadmap": {{
-        "month_1": {{
-            "focus": "Main focus area",
-            "actions": ["Action 1", "Action 2", "Action 3"],
-            "expected_outcome": "What success looks like"
-        }},
-        "month_2": {{
-            "focus": "Main focus area",
-            "actions": ["Action 1", "Action 2"],
-            "expected_outcome": "What success looks like"
-        }},
-        "month_3": {{
-            "focus": "Main focus area",
-            "actions": ["Action 1", "Action 2"],
-            "expected_outcome": "What success looks like"
-        }}
+        "primary_channel": "string",
+        "reasoning": "string",
+        "channel_mix": "string",
+        "sequence_recommendation": "string"
     }},
     "quick_wins": [
         {{
-            "action": "Specific action to take",
+            "action": "string",
             "effort": "Low/Medium/High",
             "impact": "Low/Medium/High",
-            "timeline": "This week / This month"
+            "timeline": "string"
         }}
     ],
-    "campaigns_to_scale": ["Campaign names to increase volume"],
-    "campaigns_to_pause": ["Campaign names to stop or rework"],
-    "final_recommendation": "Your #1 recommendation in 2-3 sentences"
+    "campaigns_to_scale": ["string"],
+    "campaigns_to_pause": ["string"],
+    "final_recommendation": "string"
 }}
 
-Be strategic. Think about the business goal: selling AI Agents to decision makers."""
+IMPORTANT: Output ONLY the JSON object. No markdown, no explanation, no code blocks. Just the raw JSON."""
 
     def _build_ab_test_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
         """Build prompt for A/B test suggestions with concrete examples"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str) if templates_by_campaign else "No templates available"
         
-        return f"""You are an A/B testing expert and B2B copywriter. Generate CONCRETE test suggestions with actual message copy.
-
-IMPORTANT: Respond ENTIRELY in English. Provide ACTUAL MESSAGES to test, not just ideas.
+        return f"""Generate A/B test suggestions for these campaigns. Respond ONLY with valid JSON.
 
 {self._get_context_prompt()}
 
-## CURRENT CAMPAIGN DATA:
+CAMPAIGN DATA:
 {data_str}
 
-## CURRENT MESSAGES:
+MESSAGE TEMPLATES:
 {templates_str}
 
-## YOUR TASK:
-Generate specific A/B tests with COMPLETE messages ready to use.
-Don't just say "test personalization" - write the actual personalized message.
-
-Provide a JSON response:
-
+Respond with this exact JSON structure:
 {{
     "priority_test": {{
-        "test_name": "Name of the test",
-        "hypothesis": "If we change X, then Y will improve because Z",
+        "test_name": "string",
+        "hypothesis": "string",
         "variant_a": {{
             "name": "Control",
-            "full_message": "Complete message copy for variant A",
+            "full_message": "Complete message text for variant A",
             "channel": "LinkedIn or Email"
         }},
         "variant_b": {{
             "name": "Challenger",
-            "full_message": "Complete message copy for variant B",
+            "full_message": "Complete message text for variant B",
             "channel": "LinkedIn or Email"
         }},
-        "what_changed": "Specific element being tested",
-        "success_metric": "Reply rate / Acceptance rate / Meeting booked",
-        "sample_size": "X leads per variant",
-        "expected_lift": "X% improvement expected"
+        "what_changed": "string",
+        "success_metric": "string",
+        "sample_size": "string",
+        "expected_lift": "string"
     }},
     "subject_line_tests": [
         {{
-            "current_best": "Current best performing subject",
-            "variant_a": "New subject line option A",
-            "variant_b": "New subject line option B", 
-            "variant_c": "New subject line option C",
-            "rationale": "Why these variants could outperform"
-        }}
-    ],
-    "linkedin_message_tests": [
-        {{
-            "test_name": "What we're testing",
-            "control": {{
-                "message": "Current LinkedIn message",
-                "reply_rate": "X%"
-            }},
-            "variant": {{
-                "message": "New LinkedIn message to test",
-                "change": "What's different"
-            }}
-        }}
-    ],
-    "email_body_tests": [
-        {{
-            "test_name": "What we're testing",
-            "control": {{
-                "body": "Current email body",
-                "reply_rate": "X%"
-            }},
-            "variant": {{
-                "body": "New email body to test",
-                "change": "What's different"
-            }}
-        }}
-    ],
-    "sequence_tests": [
-        {{
-            "test_name": "Sequence structure test",
-            "current_sequence": "Email → LinkedIn → Follow-up",
-            "proposed_sequence": "LinkedIn → Email → Voice note",
-            "rationale": "Why this sequence might work better"
+            "current_best": "string",
+            "variant_a": "string",
+            "variant_b": "string",
+            "variant_c": "string",
+            "rationale": "string"
         }}
     ],
     "testing_calendar": {{
-        "week_1": "Test to run",
-        "week_2": "Test to run",
-        "week_3": "Test to run",
-        "week_4": "Analyze and iterate"
+        "week_1": "string",
+        "week_2": "string",
+        "week_3": "string",
+        "week_4": "string"
     }}
 }}
 
-Write COMPLETE messages. Be specific. Use the same tone and personalization variables as the current messages."""
+IMPORTANT: Output ONLY the JSON object. No markdown, no explanation, no code blocks. Just the raw JSON."""
 
     def _build_chat_prompt(self, question: str, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
         """Build prompt for free-form chat"""
@@ -425,33 +317,49 @@ Generate complete message variants in JSON:
     
     def _extract_json(self, text: str) -> dict:
         """Extract JSON from response text"""
+        original_text = text  # Keep original for error reporting
         text = text.strip()
         
         # Remove markdown code blocks if present
-        if text.startswith("```json"):
-            text = text[7:]
-        elif text.startswith("```"):
-            text = text[3:]
-        if text.endswith("```"):
-            text = text[:-3]
+        if "```json" in text:
+            start = text.find("```json") + 7
+            end = text.find("```", start)
+            if end > start:
+                text = text[start:end]
+        elif "```" in text:
+            start = text.find("```") + 3
+            end = text.find("```", start)
+            if end > start:
+                text = text[start:end]
         
         text = text.strip()
         
+        # Try direct parsing
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            # Try to find JSON object in the text
-            json_match = re.search(r'\{[\s\S]*\}', text)
-            if json_match:
-                try:
-                    return json.loads(json_match.group())
-                except json.JSONDecodeError:
-                    pass
-            
-            return {
-                "error": "Could not parse JSON response",
-                "raw_response": text
-            }
+            pass
+        
+        # Try to find JSON object in the text
+        json_match = re.search(r'\{[\s\S]*\}', text)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except json.JSONDecodeError:
+                pass
+        
+        # Try to fix common issues
+        try:
+            # Remove trailing commas before } or ]
+            fixed = re.sub(r',(\s*[}\]])', r'\1', text)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+        
+        return {
+            "error": "Could not parse JSON response",
+            "raw_response": original_text[:2000] if len(original_text) > 2000 else original_text
+        }
 
 
 class MockGeminiAnalyzer:
