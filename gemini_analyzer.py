@@ -45,6 +45,19 @@ class GeminiAnalyzer:
 - Additional info: {self.business_context.get('additional', 'None')}
 """
 
+    def full_analysis(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        """
+        Complete analysis in one call: Diagnostic + Corrections + A/B Tests + Details
+        This is the main method for the AI Agent tab
+        """
+        prompt = self._build_full_analysis_prompt(campaigns_data, templates_by_campaign)
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return self._extract_json(response.text)
+        except Exception as e:
+            return {"error": str(e), "raw_response": None}
+
     def analyze_copywriting(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
         """
         Deep analysis of message copywriting
@@ -107,6 +120,119 @@ class GeminiAnalyzer:
             return response.text
         except Exception as e:
             return f"Error: {str(e)}"
+    
+    def _build_full_analysis_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """Build prompt for complete analysis - diagnostic, corrections, A/B tests"""
+        data_str = json.dumps(campaigns_data, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str) if templates_by_campaign else "No templates available"
+        
+        return f"""You are a B2B sales copywriting expert. Analyze these outreach campaigns and provide a COMPLETE diagnosis.
+
+{self._get_context_prompt()}
+
+CAMPAIGN PERFORMANCE DATA:
+{data_str}
+
+MESSAGE TEMPLATES (subjects, bodies, LinkedIn messages):
+{templates_str}
+
+SPAM WORDS TO DETECT AND AVOID:
+- Urgency: "Act now", "Limited time", "Urgent", "Immediately", "Hurry"
+- Money: "Free", "Discount", "Save", "Cheap", "$$"
+- Promises: "Guarantee", "No risk", "100%", "Risk-free"
+- Pressure: "Click here", "Sign up free", "Buy now", "Order now"
+- Hype: "Amazing", "Incredible", "Revolutionary", "Breakthrough"
+- Sales-y: "Deal", "Offer", "Promotion", "Exclusive"
+
+YOUR TASK:
+1. Diagnose WHY each campaign performs the way it does (look at open rates, reply rates, etc.)
+2. Identify specific problems in the copy (spam words, weak hooks, bad CTAs, too long, etc.)
+3. Provide EXACT corrections with before/after
+4. Suggest A/B tests to validate improvements
+
+Respond with this exact JSON structure:
+{{
+    "diagnosis": [
+        {{
+            "campaign": "campaign name",
+            "performance_summary": "Open rate X%, Reply rate Y% - Below/Above average",
+            "status": "critical/warning/good",
+            "main_problem": "The #1 issue with this campaign",
+            "root_causes": [
+                {{
+                    "issue": "Specific issue found (e.g., 'Spam word in subject')",
+                    "location": "subject/hook/body/cta/linkedin",
+                    "evidence": "The exact text that's problematic",
+                    "impact": "How this hurts performance"
+                }}
+            ]
+        }}
+    ],
+    "corrections": [
+        {{
+            "campaign": "campaign name",
+            "priority": 1,
+            "type": "subject/hook/body/cta/linkedin",
+            "current": "Current problematic text",
+            "corrected": "Improved spam-free text",
+            "why": "Brief explanation of the change",
+            "expected_impact": "Expected improvement"
+        }}
+    ],
+    "spam_alerts": [
+        {{
+            "campaign": "campaign name",
+            "word": "spam word found",
+            "location": "subject/body",
+            "severity": "high/medium/low",
+            "replace_with": "suggested replacement"
+        }}
+    ],
+    "ab_tests": [
+        {{
+            "test_name": "What we're testing",
+            "hypothesis": "If we change X, then Y because Z",
+            "campaign": "campaign to test on",
+            "variant_a": {{
+                "name": "Control",
+                "content": "Current message/subject"
+            }},
+            "variant_b": {{
+                "name": "Challenger",
+                "content": "New spam-free message/subject"
+            }},
+            "metric": "What to measure",
+            "duration": "How long to run"
+        }}
+    ],
+    "detailed_analysis": {{
+        "hooks": {{
+            "best": [{{"text": "string", "campaign": "string", "why": "string"}}],
+            "worst": [{{"text": "string", "campaign": "string", "why": "string"}}]
+        }},
+        "ctas": {{
+            "best": ["string"],
+            "worst": ["string"],
+            "recommendations": ["string"]
+        }},
+        "channel_insights": {{
+            "email": "Insights about email performance",
+            "linkedin": "Insights about LinkedIn performance",
+            "recommendation": "Which channel to prioritize and why"
+        }}
+    }},
+    "quick_wins": [
+        {{
+            "action": "Specific action to take right now",
+            "effort": "5min/30min/1hour",
+            "impact": "high/medium/low"
+        }}
+    ],
+    "summary": "2-3 sentence executive summary of the most important findings and actions"
+}}
+
+Be SPECIFIC. Quote actual text from the messages. Give concrete before/after examples.
+IMPORTANT: Output ONLY the JSON object. No markdown, no code blocks, no explanation."""
     
     def _build_copywriting_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
         """Build prompt for deep copywriting analysis"""
@@ -494,6 +620,151 @@ class MockGeminiAnalyzer:
     
     def set_business_context(self, context: dict):
         self.business_context = context
+    
+    def full_analysis(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        return {
+            "diagnosis": [
+                {
+                    "campaign": "Demo Campaign A",
+                    "performance_summary": "Open rate 45%, Reply rate 12% - Above average",
+                    "status": "good",
+                    "main_problem": "Good performance but CTA could be stronger",
+                    "root_causes": [
+                        {
+                            "issue": "Weak call-to-action",
+                            "location": "cta",
+                            "evidence": "Let me know if you'd like to chat",
+                            "impact": "Passive CTA reduces reply urgency"
+                        }
+                    ]
+                },
+                {
+                    "campaign": "Demo Campaign B",
+                    "performance_summary": "Open rate 22%, Reply rate 3% - Below average",
+                    "status": "critical",
+                    "main_problem": "Subject line contains spam trigger + generic hook",
+                    "root_causes": [
+                        {
+                            "issue": "Spam word in subject",
+                            "location": "subject",
+                            "evidence": "Free guide for {{companyName}}",
+                            "impact": "Emails landing in spam folder, hurting open rate"
+                        },
+                        {
+                            "issue": "Generic hook",
+                            "location": "hook",
+                            "evidence": "Hi, I wanted to reach out...",
+                            "impact": "No differentiation, prospect deletes immediately"
+                        }
+                    ]
+                }
+            ],
+            "corrections": [
+                {
+                    "campaign": "Demo Campaign B",
+                    "priority": 1,
+                    "type": "subject",
+                    "current": "Free guide for {{companyName}}",
+                    "corrected": "Quick resource for {{companyName}}'s e-commerce growth",
+                    "why": "Removed spam trigger 'Free', added specific value prop",
+                    "expected_impact": "+15-20% open rate"
+                },
+                {
+                    "campaign": "Demo Campaign B",
+                    "priority": 2,
+                    "type": "hook",
+                    "current": "Hi, I wanted to reach out...",
+                    "corrected": "{{firstName}}, noticed {{companyName}} just launched on Shopify Plus - congrats! Most brands at your stage start seeing alert fatigue from their monitoring tools around now.",
+                    "why": "Added personalization, specific trigger event, and pain point",
+                    "expected_impact": "+8-10% reply rate"
+                },
+                {
+                    "campaign": "Demo Campaign A",
+                    "priority": 3,
+                    "type": "cta",
+                    "current": "Let me know if you'd like to chat",
+                    "corrected": "Worth a 15-min call this week to see if this fits {{companyName}}?",
+                    "why": "Specific time commitment, direct question",
+                    "expected_impact": "+3-5% reply rate"
+                }
+            ],
+            "spam_alerts": [
+                {
+                    "campaign": "Demo Campaign B",
+                    "word": "Free",
+                    "location": "subject",
+                    "severity": "high",
+                    "replace_with": "Complimentary or remove entirely"
+                }
+            ],
+            "ab_tests": [
+                {
+                    "test_name": "Subject Line: Spam-free vs Current",
+                    "hypothesis": "Removing 'Free' will improve deliverability and open rates",
+                    "campaign": "Demo Campaign B",
+                    "variant_a": {
+                        "name": "Control",
+                        "content": "Free guide for {{companyName}}"
+                    },
+                    "variant_b": {
+                        "name": "Challenger",
+                        "content": "Quick resource for {{companyName}}'s e-commerce growth"
+                    },
+                    "metric": "Open rate",
+                    "duration": "1 week, 100 leads per variant"
+                },
+                {
+                    "test_name": "Hook: Generic vs Personalized",
+                    "hypothesis": "Specific trigger event will increase engagement",
+                    "campaign": "Demo Campaign B",
+                    "variant_a": {
+                        "name": "Control",
+                        "content": "Hi, I wanted to reach out..."
+                    },
+                    "variant_b": {
+                        "name": "Challenger",
+                        "content": "{{firstName}}, noticed {{companyName}} just launched on Shopify Plus..."
+                    },
+                    "metric": "Reply rate",
+                    "duration": "2 weeks, 150 leads per variant"
+                }
+            ],
+            "detailed_analysis": {
+                "hooks": {
+                    "best": [{"text": "Noticed {{companyName}} just raised Series A...", "campaign": "Demo Campaign A", "why": "Shows research, timely, relevant"}],
+                    "worst": [{"text": "Hi, I wanted to reach out...", "campaign": "Demo Campaign B", "why": "Generic, no value, forgettable"}]
+                },
+                "ctas": {
+                    "best": ["Worth a 15-min call?", "Can I send you the case study?"],
+                    "worst": ["Let me know", "Feel free to reach out"],
+                    "recommendations": ["Use specific time asks", "Make it easy to say yes"]
+                },
+                "channel_insights": {
+                    "email": "Open rates suggest deliverability issues on Campaign B. Focus on cleaning spam words.",
+                    "linkedin": "LinkedIn messages performing 2x better than email - consider increasing LinkedIn volume.",
+                    "recommendation": "Prioritize LinkedIn for initial outreach, use email for follow-ups after connection."
+                }
+            },
+            "quick_wins": [
+                {
+                    "action": "Remove 'Free' from Campaign B subject line",
+                    "effort": "5min",
+                    "impact": "high"
+                },
+                {
+                    "action": "Add company trigger event to Campaign B hook",
+                    "effort": "30min",
+                    "impact": "high"
+                },
+                {
+                    "action": "Change Campaign A CTA to specific time ask",
+                    "effort": "5min",
+                    "impact": "medium"
+                }
+            ],
+            "summary": "Campaign B is underperforming due to spam word 'Free' in subject and generic hook. Fix these two issues first for immediate impact. Campaign A is solid but can improve with a stronger CTA.",
+            "_note": "⚠️ Demo analysis. Connect Gemini API for real insights."
+        }
     
     def analyze_copywriting(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
         return {

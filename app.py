@@ -449,8 +449,7 @@ def render_ranking_table(df: pd.DataFrame):
 
 
 def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_content: dict):
-    """Render the AI analysis section with new focused tabs"""
-    st.markdown("### 🤖 AI Analysis")
+    """Render the AI Agent section with unified analysis"""
     
     # Set business context
     if hasattr(st.session_state, 'business_context'):
@@ -486,79 +485,224 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
     else:
         st.info("ℹ️ No message templates found. AI will analyze based on performance data only.")
     
-    # New tabs
-    analysis_tabs = st.tabs(["✍️ Copywriting", "🚨 Spam Analysis", "🎯 Strategy", "🧪 A/B Tests", "💬 Ask AI"])
+    # Main Analysis Button
+    st.markdown("---")
+    if st.button("🚀 Analyze My Campaigns", type="primary", use_container_width=True, key="main_analysis_btn"):
+        with st.spinner("🤖 AI is analyzing your campaigns... (this may take 30 seconds)"):
+            results = analyzer.full_analysis(campaigns_data, templates_by_campaign)
+            st.session_state.full_analysis_results = results
     
-    with analysis_tabs[0]:
-        st.markdown("**Deep analysis of your message copywriting**")
-        st.caption("Focus on hooks, CTAs, tone, and what makes messages work or fail.")
-        
-        if st.button("✍️ Analyze Copywriting", key="copy_btn", type="primary", use_container_width=True):
-            with st.spinner("Analyzing copywriting with AI..."):
-                results = analyzer.analyze_copywriting(campaigns_data, templates_by_campaign)
-                st.session_state.copywriting_results = results
-        
-        if 'copywriting_results' in st.session_state:
-            render_copywriting_results(st.session_state.copywriting_results)
+    # Display Full Analysis Results
+    if 'full_analysis_results' in st.session_state:
+        render_full_analysis(st.session_state.full_analysis_results)
     
-    with analysis_tabs[1]:
-        st.markdown("**Spam words & deliverability analysis**")
-        st.caption("Check your emails for spam triggers that could hurt deliverability.")
+    # Detailed Analyses in Expander
+    st.markdown("---")
+    with st.expander("📊 Detailed Analyses (click to expand)", expanded=False):
+        detail_tabs = st.tabs(["✍️ Copywriting", "🚨 Spam Check", "🎯 Strategy", "🧪 A/B Tests"])
         
-        if st.button("🚨 Analyze Spam Words", key="spam_btn", type="primary", use_container_width=True):
-            with st.spinner("Analyzing for spam triggers..."):
-                results = analyzer.analyze_spam(campaigns_data, templates_by_campaign)
-                st.session_state.spam_results = results
+        with detail_tabs[0]:
+            st.caption("Deep dive into hooks, CTAs, and message structure")
+            if st.button("Run Copywriting Analysis", key="copy_btn"):
+                with st.spinner("Analyzing..."):
+                    results = analyzer.analyze_copywriting(campaigns_data, templates_by_campaign)
+                    st.session_state.copywriting_results = results
+            if 'copywriting_results' in st.session_state:
+                render_copywriting_results(st.session_state.copywriting_results)
         
-        if 'spam_results' in st.session_state:
-            render_spam_results(st.session_state.spam_results)
+        with detail_tabs[1]:
+            st.caption("Check for spam triggers in subjects and body")
+            if st.button("Run Spam Analysis", key="spam_btn"):
+                with st.spinner("Analyzing..."):
+                    results = analyzer.analyze_spam(campaigns_data, templates_by_campaign)
+                    st.session_state.spam_results = results
+            if 'spam_results' in st.session_state:
+                render_spam_results(st.session_state.spam_results)
+        
+        with detail_tabs[2]:
+            st.caption("Channel strategy and funnel optimization")
+            if st.button("Run Strategy Analysis", key="strategy_btn"):
+                with st.spinner("Analyzing..."):
+                    results = analyzer.get_strategic_recommendations(campaigns_data, templates_by_campaign)
+                    st.session_state.strategy_results = results
+            if 'strategy_results' in st.session_state:
+                render_strategy_results(st.session_state.strategy_results)
+        
+        with detail_tabs[3]:
+            st.caption("Generate specific A/B test variants")
+            if st.button("Generate A/B Tests", key="ab_btn"):
+                with st.spinner("Generating..."):
+                    results = analyzer.generate_ab_tests(campaigns_data, templates_by_campaign)
+                    st.session_state.ab_results = results
+            if 'ab_results' in st.session_state:
+                render_ab_test_results(st.session_state.ab_results)
     
-    with analysis_tabs[2]:
-        st.markdown("**Strategic recommendations for your funnel**")
-        st.caption("Channel strategy, audience insights, and 90-day roadmap.")
-        
-        if st.button("🎯 Get Strategic Recommendations", key="strategy_btn", type="primary", use_container_width=True):
-            with st.spinner("Generating strategic recommendations..."):
-                results = analyzer.get_strategic_recommendations(campaigns_data, templates_by_campaign)
-                st.session_state.strategy_results = results
-        
-        if 'strategy_results' in st.session_state:
-            render_strategy_results(st.session_state.strategy_results)
+    # Ask AI Section
+    st.markdown("---")
+    st.markdown("### 💬 Ask AI")
+    st.caption("Ask follow-up questions about your campaigns")
     
-    with analysis_tabs[3]:
-        st.markdown("**Concrete A/B tests with ready-to-use messages**")
-        st.caption("Not just ideas - actual messages you can copy and test.")
-        
-        if st.button("🧪 Generate A/B Tests", key="ab_btn", type="primary", use_container_width=True):
-            with st.spinner("Generating A/B test suggestions..."):
-                results = analyzer.generate_ab_tests(campaigns_data, templates_by_campaign)
-                st.session_state.ab_results = results
-        
-        if 'ab_results' in st.session_state:
-            render_ab_test_results(st.session_state.ab_results)
+    user_question = st.text_area(
+        "Your question",
+        placeholder="Examples:\n- Why is Campaign X underperforming?\n- Rewrite my LinkedIn message to be shorter\n- What's the best follow-up sequence?",
+        height=80,
+        key="ai_question"
+    )
     
-    with analysis_tabs[4]:
-        st.markdown("**Ask anything about your campaigns**")
-        st.caption("Get specific answers, rewrite messages, or dive deeper into any topic.")
-        
-        user_question = st.text_area(
-            "Your question",
-            placeholder="Examples:\n- Why is my Food campaign underperforming?\n- Rewrite my LinkedIn message to be shorter\n- What's the ideal follow-up sequence?",
-            height=100
-        )
-        
-        if st.button("💬 Ask AI", key="chat_btn", type="primary", use_container_width=True):
-            if user_question.strip():
-                with st.spinner("Thinking..."):
-                    response = analyzer.chat(user_question, campaigns_data, templates_by_campaign)
-                    st.session_state.chat_response = response
-            else:
-                st.warning("Please enter a question")
-        
-        if 'chat_response' in st.session_state:
-            st.markdown("---")
-            st.markdown("### 🤖 AI Response")
-            st.markdown(st.session_state.chat_response)
+    if st.button("💬 Ask", key="chat_btn", type="secondary"):
+        if user_question.strip():
+            with st.spinner("Thinking..."):
+                response = analyzer.chat(user_question, campaigns_data, templates_by_campaign)
+                st.session_state.chat_response = response
+        else:
+            st.warning("Please enter a question")
+    
+    if 'chat_response' in st.session_state:
+        st.markdown("**AI Response:**")
+        st.markdown(st.session_state.chat_response)
+
+
+def render_full_analysis(results: dict):
+    """Render the complete AI analysis with diagnosis, corrections, and A/B tests"""
+    if "error" in results:
+        st.error(f"Analysis error: {results['error']}")
+        if "raw_response" in results and results["raw_response"]:
+            with st.expander("🔍 View raw AI response (for debugging)"):
+                st.code(results["raw_response"])
+        return
+    
+    if "_note" in results:
+        st.warning(results["_note"])
+    
+    # Executive Summary
+    if results.get("summary"):
+        st.info(f"📋 **Summary:** {results['summary']}")
+    
+    # Quick Wins - Show first for immediate action
+    quick_wins = results.get("quick_wins", [])
+    if quick_wins:
+        st.markdown("### ⚡ Quick Wins")
+        cols = st.columns(len(quick_wins) if len(quick_wins) <= 3 else 3)
+        for i, win in enumerate(quick_wins[:3]):
+            with cols[i % 3]:
+                impact_color = "🔴" if win.get("impact") == "high" else "🟡" if win.get("impact") == "medium" else "🟢"
+                st.markdown(f"""
+                <div style="padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fafafa;">
+                    <strong>{win.get('action', 'N/A')}</strong><br>
+                    <small>⏱️ {win.get('effort', 'N/A')} | {impact_color} {win.get('impact', 'N/A')} impact</small>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # Diagnosis Section
+    diagnosis = results.get("diagnosis", [])
+    if diagnosis:
+        st.markdown("### 🔍 Campaign Diagnosis")
+        for diag in diagnosis:
+            status = diag.get("status", "warning")
+            status_icon = "🔴" if status == "critical" else "🟡" if status == "warning" else "🟢"
+            
+            with st.expander(f"{status_icon} **{diag.get('campaign', 'Campaign')}** - {diag.get('performance_summary', '')}"):
+                st.markdown(f"**Main Problem:** {diag.get('main_problem', 'N/A')}")
+                
+                root_causes = diag.get("root_causes", [])
+                if root_causes:
+                    st.markdown("**Root Causes:**")
+                    for cause in root_causes:
+                        st.markdown(f"""
+                        - **{cause.get('issue', 'Issue')}** ({cause.get('location', 'N/A')})
+                          - Evidence: `{clean_message_text(cause.get('evidence', 'N/A'))}`
+                          - Impact: {cause.get('impact', 'N/A')}
+                        """)
+    
+    # Spam Alerts - Show prominently if any
+    spam_alerts = results.get("spam_alerts", [])
+    if spam_alerts:
+        st.markdown("### 🚨 Spam Alerts")
+        for alert in spam_alerts:
+            severity_icon = "🔴" if alert.get("severity") == "high" else "🟡" if alert.get("severity") == "medium" else "🟢"
+            st.warning(f"{severity_icon} **\"{alert.get('word', 'N/A')}\"** found in {alert.get('location', 'N/A')} ({alert.get('campaign', 'N/A')}) → Replace with: **{alert.get('replace_with', 'N/A')}**")
+    
+    # Corrections Section
+    corrections = results.get("corrections", [])
+    if corrections:
+        st.markdown("### ✏️ Recommended Corrections")
+        for corr in corrections:
+            with st.expander(f"#{corr.get('priority', '?')} - {corr.get('campaign', 'Campaign')} ({corr.get('type', 'N/A')})"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**❌ Current:**")
+                    st.code(clean_message_text(corr.get("current", "N/A")), language=None)
+                with col2:
+                    st.markdown("**✅ Corrected:**")
+                    st.code(clean_message_text(corr.get("corrected", "N/A")), language=None)
+                
+                st.markdown(f"**Why:** {corr.get('why', 'N/A')}")
+                st.success(f"**Expected Impact:** {corr.get('expected_impact', 'N/A')}")
+    
+    # A/B Tests Section
+    ab_tests = results.get("ab_tests", [])
+    if ab_tests:
+        st.markdown("### 🧪 Recommended A/B Tests")
+        for i, test in enumerate(ab_tests):
+            with st.expander(f"Test {i+1}: {test.get('test_name', 'Test')}"):
+                st.markdown(f"**Hypothesis:** {test.get('hypothesis', 'N/A')}")
+                st.markdown(f"**Campaign:** {test.get('campaign', 'N/A')}")
+                
+                col1, col2 = st.columns(2)
+                variant_a = test.get("variant_a", {})
+                variant_b = test.get("variant_b", {})
+                
+                with col1:
+                    st.markdown(f"**{variant_a.get('name', 'Variant A')}:**")
+                    st.text(clean_message_text(variant_a.get("content", "N/A")))
+                with col2:
+                    st.markdown(f"**{variant_b.get('name', 'Variant B')}:**")
+                    st.text(clean_message_text(variant_b.get("content", "N/A")))
+                
+                st.caption(f"📊 Metric: {test.get('metric', 'N/A')} | ⏱️ Duration: {test.get('duration', 'N/A')}")
+    
+    # Detailed Analysis in Sub-expander
+    detailed = results.get("detailed_analysis", {})
+    if detailed:
+        with st.expander("📚 View Detailed Analysis"):
+            # Hooks
+            hooks = detailed.get("hooks", {})
+            if hooks:
+                st.markdown("#### 🎣 Hook Analysis")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**Best Hooks:**")
+                    for h in hooks.get("best", []):
+                        st.success(f"`{clean_message_text(h.get('text', ''))}` - {h.get('why', '')}")
+                with col2:
+                    st.markdown("**Worst Hooks:**")
+                    for h in hooks.get("worst", []):
+                        st.error(f"`{clean_message_text(h.get('text', ''))}` - {h.get('why', '')}")
+            
+            # CTAs
+            ctas = detailed.get("ctas", {})
+            if ctas:
+                st.markdown("#### 🎯 CTA Analysis")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**Best CTAs:**")
+                    for c in ctas.get("best", []):
+                        st.markdown(f"- ✅ `{c}`")
+                with col2:
+                    st.markdown("**Avoid:**")
+                    for c in ctas.get("worst", []):
+                        st.markdown(f"- ❌ `{c}`")
+            
+            # Channel Insights
+            channels = detailed.get("channel_insights", {})
+            if channels:
+                st.markdown("#### 📱 Channel Insights")
+                if channels.get("email"):
+                    st.markdown(f"**Email:** {channels['email']}")
+                if channels.get("linkedin"):
+                    st.markdown(f"**LinkedIn:** {channels['linkedin']}")
+                if channels.get("recommendation"):
+                    st.info(f"**Recommendation:** {channels['recommendation']}")
 
 
 def render_copywriting_results(results: dict):
@@ -1037,22 +1181,28 @@ def main():
             st.warning("⚠️ Add Gemini API key for real AI analysis.")
             analyzer = MockGeminiAnalyzer()
     
-    # Render sections
+    # Prepare dataframe
     df = stats_to_dataframe(stats_list)
     
-    render_metrics_overview(df)
-    st.markdown("---")
+    # MAIN TABS: Data vs AI Agent
+    main_tabs = st.tabs(["📊 Data", "🤖 AI Agent"])
     
-    render_comparison_charts(df)
-    st.markdown("---")
+    # ===== DATA TAB =====
+    with main_tabs[0]:
+        render_metrics_overview(df)
+        st.markdown("---")
+        
+        render_comparison_charts(df)
+        st.markdown("---")
+        
+        render_ranking_table(df)
+        st.markdown("---")
+        
+        render_data_table(df)
     
-    render_ranking_table(df)
-    st.markdown("---")
-    
-    render_ai_analysis(analyzer, stats_list, campaign_content)
-    st.markdown("---")
-    
-    render_data_table(df)
+    # ===== AI AGENT TAB =====
+    with main_tabs[1]:
+        render_ai_analysis(analyzer, stats_list, campaign_content)
     
     # Footer
     st.markdown("---")
