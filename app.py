@@ -9,10 +9,31 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import json
+import re
 from datetime import datetime
 
 from lgm_client import LGMClient, LGMAPIError, CampaignStats
 from gemini_analyzer import GeminiAnalyzer, MockGeminiAnalyzer
+
+
+def clean_message_text(text: str) -> str:
+    """Clean HTML tags and format message text for display"""
+    if not text:
+        return "N/A"
+    
+    # Replace <br> and <br/> with newlines
+    text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    
+    # Remove all other HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+    
+    # Clean up multiple newlines
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    # Trim whitespace
+    text = text.strip()
+    
+    return text
 
 # Page config
 st.set_page_config(
@@ -610,7 +631,7 @@ def render_copywriting_results(results: dict):
             st.markdown("**✅ Best Hooks:**")
             for hook in hooks.get("best_hooks", []):
                 with st.expander(f"📈 {hook.get('reply_rate', 'N/A')} reply rate"):
-                    st.code(hook.get("hook", "N/A"))
+                    st.text(clean_message_text(hook.get("hook", "N/A")))
                     st.markdown(f"*Campaign: {hook.get('campaign', 'N/A')}*")
                     st.markdown(f"**Why it works:** {hook.get('why_it_works', 'N/A')}")
         
@@ -618,7 +639,7 @@ def render_copywriting_results(results: dict):
             st.markdown("**❌ Worst Hooks:**")
             for hook in hooks.get("worst_hooks", []):
                 with st.expander(f"📉 {hook.get('reply_rate', 'N/A')} reply rate"):
-                    st.code(hook.get("hook", "N/A"))
+                    st.text(clean_message_text(hook.get("hook", "N/A")))
                     st.markdown(f"*Campaign: {hook.get('campaign', 'N/A')}*")
                     st.markdown(f"**Why it fails:** {hook.get('why_it_fails', 'N/A')}")
         
@@ -648,10 +669,12 @@ def render_copywriting_results(results: dict):
         for improvement in results["message_improvements"]:
             with st.expander(f"🔄 {improvement.get('campaign', 'Message')}"):
                 st.markdown("**Original:**")
-                st.code(improvement.get("original_message", "N/A"))
+                original = clean_message_text(improvement.get("original_message", "N/A"))
+                st.text(original)
                 
                 st.markdown("**Improved Version:**")
-                st.code(improvement.get("improved_version", "N/A"))
+                improved = clean_message_text(improvement.get("improved_version", "N/A"))
+                st.text(improved)
                 
                 if improvement.get("changes_made"):
                     st.markdown("**Changes Made:**")
@@ -745,12 +768,14 @@ def render_ab_test_results(results: dict):
         with col1:
             st.markdown("**Variant A (Control):**")
             variant_a = test.get("variant_a", {})
-            st.code(variant_a.get("full_message", "N/A"))
+            st.text(clean_message_text(variant_a.get("full_message", "N/A")))
+            st.caption(f"Channel: {variant_a.get('channel', 'N/A')}")
         
         with col2:
             st.markdown("**Variant B (Challenger):**")
             variant_b = test.get("variant_b", {})
-            st.code(variant_b.get("full_message", "N/A"))
+            st.text(clean_message_text(variant_b.get("full_message", "N/A")))
+            st.caption(f"Channel: {variant_b.get('channel', 'N/A')}")
     
     # Subject Line Tests
     if "subject_line_tests" in results:
