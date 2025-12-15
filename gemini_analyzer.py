@@ -111,12 +111,43 @@ CAMPAIGN DATA:
 MESSAGE TEMPLATES:
 {templates_str}
 
+COMMON SPAM TRIGGER WORDS TO CHECK FOR:
+- Urgency: "Act now", "Limited time", "Urgent", "Immediately", "Don't miss"
+- Money: "Free", "Discount", "Save", "Cheap", "Best price", "Cash", "$$"
+- Promises: "Guarantee", "No risk", "100%", "Promise", "Certified"
+- Pressure: "Call now", "Apply now", "Order now", "Click here", "Sign up free"
+- Hype: "Amazing", "Incredible", "Revolutionary", "Breakthrough", "Miracle"
+- Suspicious: "No obligation", "No purchase necessary", "Winner", "Congratulations"
+- Sales-y: "Buy", "Order", "Purchase", "Deal", "Offer", "Promotion"
+
 Respond with this exact JSON structure:
 {{
     "executive_summary": {{
         "main_insight": "string",
         "biggest_opportunity": "string",
         "quick_win": "string"
+    }},
+    "spam_analysis": {{
+        "overall_spam_risk": "Low/Medium/High",
+        "spam_words_found": [
+            {{
+                "campaign": "campaign name",
+                "word_or_phrase": "the spam word found",
+                "location": "subject/body/linkedin message",
+                "risk_level": "Low/Medium/High",
+                "suggestion": "alternative phrasing"
+            }}
+        ],
+        "subject_line_risks": [
+            {{
+                "campaign": "campaign name",
+                "subject": "the subject line",
+                "issues": ["issue 1", "issue 2"],
+                "improved_subject": "rewritten subject without spam triggers"
+            }}
+        ],
+        "safe_patterns": ["patterns that are working well and not triggering spam"],
+        "recommendations": ["specific recommendations to improve deliverability"]
     }},
     "hook_analysis": {{
         "best_hooks": [

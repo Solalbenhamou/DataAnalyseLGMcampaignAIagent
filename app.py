@@ -553,6 +553,52 @@ def render_copywriting_results(results: dict):
         with col3:
             st.success(f"**Quick Win:**\n{summary.get('quick_win', 'N/A')}")
     
+    # Spam Analysis
+    if "spam_analysis" in results:
+        st.markdown("#### 🚨 Spam Words Analysis")
+        spam = results["spam_analysis"]
+        
+        # Overall risk indicator
+        risk = spam.get("overall_spam_risk", "Unknown")
+        if risk == "High":
+            st.error(f"⚠️ **Overall Spam Risk: {risk}** - Your emails may land in spam folders!")
+        elif risk == "Medium":
+            st.warning(f"⚡ **Overall Spam Risk: {risk}** - Some improvements needed")
+        else:
+            st.success(f"✅ **Overall Spam Risk: {risk}** - Good deliverability expected")
+        
+        # Spam words found
+        spam_words = spam.get("spam_words_found", [])
+        if spam_words:
+            st.markdown("**🔍 Spam Triggers Found:**")
+            for item in spam_words:
+                risk_emoji = "🔴" if item.get("risk_level") == "High" else "🟡" if item.get("risk_level") == "Medium" else "🟢"
+                with st.expander(f"{risk_emoji} \"{item.get('word_or_phrase', 'N/A')}\" in {item.get('location', 'N/A')} ({item.get('campaign', 'N/A')})"):
+                    st.markdown(f"**Risk Level:** {item.get('risk_level', 'N/A')}")
+                    st.markdown(f"**Suggestion:** {item.get('suggestion', 'N/A')}")
+        else:
+            st.success("✅ No major spam triggers detected!")
+        
+        # Subject line risks
+        subject_risks = spam.get("subject_line_risks", [])
+        if subject_risks:
+            st.markdown("**📧 Subject Line Improvements:**")
+            for subj in subject_risks:
+                with st.expander(f"📝 {subj.get('campaign', 'Campaign')}"):
+                    st.markdown(f"**Current:** `{subj.get('subject', 'N/A')}`")
+                    if subj.get("issues"):
+                        st.markdown("**Issues:**")
+                        for issue in subj.get("issues", []):
+                            st.markdown(f"- ❌ {issue}")
+                    st.markdown(f"**Improved:** `{subj.get('improved_subject', 'N/A')}`")
+        
+        # Recommendations
+        recommendations = spam.get("recommendations", [])
+        if recommendations:
+            st.markdown("**💡 Deliverability Recommendations:**")
+            for rec in recommendations:
+                st.markdown(f"- {rec}")
+    
     # Hook Analysis
     if "hook_analysis" in results:
         st.markdown("#### 🎣 Hook Analysis")
