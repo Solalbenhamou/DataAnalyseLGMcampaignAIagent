@@ -305,6 +305,24 @@ CAMPAIGN DATA:
 MESSAGE TEMPLATES:
 {templates_str}
 
+CRITICAL - SPAM WORDS TO AVOID IN ALL GENERATED MESSAGES:
+When writing test variants, NEVER use these spam trigger words:
+- Urgency: "Act now", "Limited time", "Urgent", "Immediately", "Don't miss", "Hurry" 
+  → Use instead: "When you have a moment", "Currently available", "Timely"
+- Money: "Free", "Discount", "Save", "Cheap", "$$"
+  → Use instead: "Complimentary", "At no cost", "Cost-effective"
+- Promises: "Guarantee", "No risk", "100%", "Risk-free"
+  → Use instead: "We're confident", "Low commitment"
+- Pressure: "Click here", "Sign up free", "Buy now", "Order now"
+  → Use instead: "Learn more", "Get started", "Explore"
+- Hype: "Amazing", "Incredible", "Revolutionary", "Breakthrough"
+  → Use instead: "Impressive", "Notable", "Innovative"
+- Sales-y: "Deal", "Offer", "Promotion", "Exclusive"
+  → Use instead: "Opportunity", "Option", "Program"
+- NO ALL CAPS, NO excessive punctuation (!!!)
+
+All messages you generate MUST be spam-free and professional.
+
 Respond with this exact JSON structure:
 {{
     "priority_test": {{
@@ -312,12 +330,12 @@ Respond with this exact JSON structure:
         "hypothesis": "string",
         "variant_a": {{
             "name": "Control",
-            "full_message": "Complete message text for variant A",
+            "full_message": "Complete spam-free message text for variant A",
             "channel": "LinkedIn or Email"
         }},
         "variant_b": {{
-            "name": "Challenger",
-            "full_message": "Complete message text for variant B",
+            "name": "Challenger", 
+            "full_message": "Complete spam-free message text for variant B",
             "channel": "LinkedIn or Email"
         }},
         "what_changed": "string",
@@ -328,9 +346,9 @@ Respond with this exact JSON structure:
     "subject_line_tests": [
         {{
             "current_best": "string",
-            "variant_a": "string",
-            "variant_b": "string",
-            "variant_c": "string",
+            "variant_a": "spam-free subject line option A",
+            "variant_b": "spam-free subject line option B",
+            "variant_c": "spam-free subject line option C",
             "rationale": "string"
         }}
     ],
