@@ -485,25 +485,39 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
     else:
         st.info("ℹ️ No message templates found. AI will analyze based on performance data only.")
     
-    # Main Analysis Button
+    # Menu selector
     st.markdown("---")
-    if st.button("🚀 Analyze My Campaigns", type="primary", use_container_width=True, key="main_analysis_btn"):
-        with st.spinner("🤖 AI is analyzing your campaigns... (this may take 30 seconds)"):
-            results = analyzer.full_analysis(campaigns_data, templates_by_campaign)
-            st.session_state.full_analysis_results = results
+    analysis_mode = st.selectbox(
+        "Select Analysis Mode",
+        ["🚀 Overall Analysis", "📊 Detailed Analysis", "💬 Ask AI"],
+        key="analysis_mode_selector"
+    )
     
-    # Display Full Analysis Results
-    if 'full_analysis_results' in st.session_state:
-        render_full_analysis(st.session_state.full_analysis_results)
-    
-    # Detailed Analyses in Expander
     st.markdown("---")
-    with st.expander("📊 Detailed Analyses (click to expand)", expanded=False):
+    
+    # ===== OVERALL ANALYSIS =====
+    if analysis_mode == "🚀 Overall Analysis":
+        st.markdown("### 🚀 Overall Analysis")
+        st.caption("Complete diagnosis with corrections and A/B tests in one click")
+        
+        if st.button("🚀 Analyze My Campaigns", type="primary", use_container_width=True, key="main_analysis_btn"):
+            with st.spinner("🤖 AI is analyzing your campaigns... (this may take 30 seconds)"):
+                results = analyzer.full_analysis(campaigns_data, templates_by_campaign)
+                st.session_state.full_analysis_results = results
+        
+        if 'full_analysis_results' in st.session_state:
+            render_full_analysis(st.session_state.full_analysis_results)
+    
+    # ===== DETAILED ANALYSIS =====
+    elif analysis_mode == "📊 Detailed Analysis":
+        st.markdown("### 📊 Detailed Analysis")
+        st.caption("Run specific analyses individually")
+        
         detail_tabs = st.tabs(["✍️ Copywriting", "🚨 Spam Check", "🎯 Strategy", "🧪 A/B Tests"])
         
         with detail_tabs[0]:
-            st.caption("Deep dive into hooks, CTAs, and message structure")
-            if st.button("Run Copywriting Analysis", key="copy_btn"):
+            st.markdown("**Deep dive into hooks, CTAs, and message structure**")
+            if st.button("Run Copywriting Analysis", key="copy_btn", type="primary", use_container_width=True):
                 with st.spinner("Analyzing..."):
                     results = analyzer.analyze_copywriting(campaigns_data, templates_by_campaign)
                     st.session_state.copywriting_results = results
@@ -511,8 +525,8 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
                 render_copywriting_results(st.session_state.copywriting_results)
         
         with detail_tabs[1]:
-            st.caption("Check for spam triggers in subjects and body")
-            if st.button("Run Spam Analysis", key="spam_btn"):
+            st.markdown("**Check for spam triggers in subjects and body**")
+            if st.button("Run Spam Analysis", key="spam_btn", type="primary", use_container_width=True):
                 with st.spinner("Analyzing..."):
                     results = analyzer.analyze_spam(campaigns_data, templates_by_campaign)
                     st.session_state.spam_results = results
@@ -520,8 +534,8 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
                 render_spam_results(st.session_state.spam_results)
         
         with detail_tabs[2]:
-            st.caption("Channel strategy and funnel optimization")
-            if st.button("Run Strategy Analysis", key="strategy_btn"):
+            st.markdown("**Channel strategy and funnel optimization**")
+            if st.button("Run Strategy Analysis", key="strategy_btn", type="primary", use_container_width=True):
                 with st.spinner("Analyzing..."):
                     results = analyzer.get_strategic_recommendations(campaigns_data, templates_by_campaign)
                     st.session_state.strategy_results = results
@@ -529,37 +543,38 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
                 render_strategy_results(st.session_state.strategy_results)
         
         with detail_tabs[3]:
-            st.caption("Generate specific A/B test variants")
-            if st.button("Generate A/B Tests", key="ab_btn"):
+            st.markdown("**Generate specific A/B test variants**")
+            if st.button("Generate A/B Tests", key="ab_btn", type="primary", use_container_width=True):
                 with st.spinner("Generating..."):
                     results = analyzer.generate_ab_tests(campaigns_data, templates_by_campaign)
                     st.session_state.ab_results = results
             if 'ab_results' in st.session_state:
                 render_ab_test_results(st.session_state.ab_results)
     
-    # Ask AI Section
-    st.markdown("---")
-    st.markdown("### 💬 Ask AI")
-    st.caption("Ask follow-up questions about your campaigns")
-    
-    user_question = st.text_area(
-        "Your question",
-        placeholder="Examples:\n- Why is Campaign X underperforming?\n- Rewrite my LinkedIn message to be shorter\n- What's the best follow-up sequence?",
-        height=80,
-        key="ai_question"
-    )
-    
-    if st.button("💬 Ask", key="chat_btn", type="secondary"):
-        if user_question.strip():
-            with st.spinner("Thinking..."):
-                response = analyzer.chat(user_question, campaigns_data, templates_by_campaign)
-                st.session_state.chat_response = response
-        else:
-            st.warning("Please enter a question")
-    
-    if 'chat_response' in st.session_state:
-        st.markdown("**AI Response:**")
-        st.markdown(st.session_state.chat_response)
+    # ===== ASK AI =====
+    elif analysis_mode == "💬 Ask AI":
+        st.markdown("### 💬 Ask AI")
+        st.caption("Ask any question about your campaigns")
+        
+        user_question = st.text_area(
+            "Your question",
+            placeholder="Examples:\n- Why is Campaign X underperforming?\n- Rewrite my LinkedIn message to be shorter\n- What's the best follow-up sequence?\n- Compare my email vs LinkedIn performance",
+            height=120,
+            key="ai_question"
+        )
+        
+        if st.button("💬 Ask AI", key="chat_btn", type="primary", use_container_width=True):
+            if user_question.strip():
+                with st.spinner("Thinking..."):
+                    response = analyzer.chat(user_question, campaigns_data, templates_by_campaign)
+                    st.session_state.chat_response = response
+            else:
+                st.warning("Please enter a question")
+        
+        if 'chat_response' in st.session_state:
+            st.markdown("---")
+            st.markdown("**🤖 AI Response:**")
+            st.markdown(st.session_state.chat_response)
 
 
 def render_full_analysis(results: dict):
