@@ -1,6 +1,7 @@
 """
 Gemini AI Analyzer
 Analyzes campaign data and provides insights and recommendations
+Focused on copywriting analysis for AI Agent Sales
 """
 
 import google.generativeai as genai
@@ -12,311 +13,418 @@ import re
 class GeminiAnalyzer:
     """AI-powered campaign analyzer using Google Gemini"""
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, business_context: dict = None):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self.business_context = business_context or {
+            "product": "AI Agent",
+            "goal": "Connect with leads → Book meetings → Close deals",
+            "target": "Decision makers (CEOs, CTOs, Founders)",
+            "industry": "B2B SaaS"
+        }
     
-    def analyze_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
-        """
-        Analyze campaign performance and provide insights
-        
-        Args:
-            campaigns_data: List of campaign stats dictionaries
-            campaign_content: Optional dict mapping campaign names to their content (subject, body, etc.)
-        
-        Returns:
-            Dictionary with analysis results
-        """
-        prompt = self._build_analysis_prompt(campaigns_data, campaign_content)
-        
-        try:
-            response = self.model.generate_content(prompt)
-            return self._parse_analysis_response(response.text)
-        except Exception as e:
-            return {
-                "error": str(e),
-                "raw_response": None
-            }
+    def set_business_context(self, context: dict):
+        """Update the business context"""
+        self.business_context = context
     
-    def compare_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
-        """Compare multiple campaigns and identify winners"""
-        prompt = self._build_comparison_prompt(campaigns_data, campaign_content)
-        
-        try:
-            response = self.model.generate_content(prompt)
-            return self._parse_comparison_response(response.text)
-        except Exception as e:
-            return {
-                "error": str(e),
-                "raw_response": None
-            }
-    
-    def suggest_next_tests(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
-        """Suggest next A/B tests based on current results"""
-        prompt = self._build_suggestions_prompt(campaigns_data, campaign_content)
-        
-        try:
-            response = self.model.generate_content(prompt)
-            return self._parse_suggestions_response(response.text)
-        except Exception as e:
-            return {
-                "error": str(e),
-                "raw_response": None
-            }
-    
-    def generate_variants(self, winning_content: dict, num_variants: int = 3) -> dict:
-        """Generate new content variants based on winning patterns"""
-        prompt = self._build_variants_prompt(winning_content, num_variants)
-        
-        try:
-            response = self.model.generate_content(prompt)
-            return self._parse_variants_response(response.text)
-        except Exception as e:
-            return {
-                "error": str(e),
-                "raw_response": None
-            }
-    
-    def _build_analysis_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
-        """Build prompt for campaign analysis"""
-        data_str = json.dumps(campaigns_data, indent=2, default=str)
-        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
-        
-        return f"""You are an expert in growth marketing and copywriting. Analyze the data from these outreach campaigns (email + LinkedIn).
+    def _get_context_prompt(self) -> str:
+        """Build the business context section for prompts"""
+        return f"""## BUSINESS CONTEXT:
+- Product/Service: {self.business_context.get('product', 'AI Agent')}
+- Goal: {self.business_context.get('goal', 'Connect → Meeting → Close')}
+- Target ICP: {self.business_context.get('target', 'Decision makers')}
+- Industry: {self.business_context.get('industry', 'B2B SaaS')}
+- Additional info: {self.business_context.get('additional', 'None')}
+"""
 
-IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
+    def analyze_copywriting(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        """
+        Deep analysis of message copywriting
+        Focus on: hooks, CTAs, tone, structure, what works vs what doesn't
+        """
+        prompt = self._build_copywriting_prompt(campaigns_data, templates_by_campaign)
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return self._extract_json(response.text)
+        except Exception as e:
+            return {"error": str(e), "raw_response": None}
+    
+    def get_strategic_recommendations(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        """
+        Strategic recommendations based on business context
+        Focus on: funnel optimization, channel strategy, next steps
+        """
+        prompt = self._build_strategic_prompt(campaigns_data, templates_by_campaign)
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return self._extract_json(response.text)
+        except Exception as e:
+            return {"error": str(e), "raw_response": None}
+    
+    def generate_ab_tests(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        """
+        Generate concrete A/B test suggestions with actual message examples
+        """
+        prompt = self._build_ab_test_prompt(campaigns_data, templates_by_campaign)
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return self._extract_json(response.text)
+        except Exception as e:
+            return {"error": str(e), "raw_response": None}
+    
+    def chat(self, question: str, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """
+        Free-form chat about campaigns
+        User can ask any question about their data
+        """
+        prompt = self._build_chat_prompt(question, campaigns_data, templates_by_campaign)
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+    def _build_copywriting_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """Build prompt for deep copywriting analysis"""
+        data_str = json.dumps(campaigns_data, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
+        
+        return f"""You are a world-class B2B copywriter and growth expert. Analyze the MESSAGE CONTENT of these outreach campaigns.
+
+IMPORTANT: Respond ENTIRELY in English. Focus on ACTIONABLE copywriting insights, not just stats.
+
+{self._get_context_prompt()}
+
+## CAMPAIGN PERFORMANCE DATA:
+{data_str}
+
+## MESSAGE TEMPLATES (the actual copy used):
+{templates_str}
+
+## YOUR TASK:
+Analyze the COPYWRITING - not the stats. I can see the stats myself. 
+Tell me WHY certain messages work and others don't. Be specific and actionable.
+
+Provide a JSON response:
+
+{{
+    "executive_summary": {{
+        "main_insight": "The #1 copywriting insight from this data",
+        "biggest_opportunity": "The biggest improvement opportunity",
+        "quick_win": "One change that could improve results immediately"
+    }},
+    "hook_analysis": {{
+        "best_hooks": [
+            {{
+                "hook": "The exact opening line that works",
+                "campaign": "campaign name",
+                "reply_rate": "X%",
+                "why_it_works": "Psychological reason it works"
+            }}
+        ],
+        "worst_hooks": [
+            {{
+                "hook": "Opening line that doesn't work",
+                "campaign": "campaign name", 
+                "reply_rate": "X%",
+                "why_it_fails": "Why this doesn't resonate"
+            }}
+        ],
+        "hook_patterns": ["Pattern 1 that correlates with high replies", "Pattern 2"]
+    }},
+    "cta_analysis": {{
+        "best_ctas": ["CTA that gets replies"],
+        "worst_ctas": ["CTA that doesn't work"],
+        "recommendations": ["Specific CTA improvements"]
+    }},
+    "tone_and_style": {{
+        "winning_tone": "Description of tone that works (casual, professional, etc.)",
+        "optimal_length": "Short/Medium/Long with specific word count",
+        "personalization_impact": "How personalization affects results"
+    }},
+    "channel_specific": {{
+        "linkedin": {{
+            "what_works": ["LinkedIn-specific insight"],
+            "what_to_avoid": ["What doesn't work on LinkedIn"],
+            "ideal_structure": "Recommended message structure"
+        }},
+        "email": {{
+            "subject_line_insights": ["What makes subjects work"],
+            "body_insights": ["What makes bodies work"],
+            "ideal_structure": "Recommended email structure"
+        }}
+    }},
+    "message_improvements": [
+        {{
+            "original_message": "Current message that underperforms",
+            "campaign": "campaign name",
+            "current_reply_rate": "X%",
+            "improved_version": "Your rewritten version",
+            "changes_made": ["Change 1", "Change 2"],
+            "expected_improvement": "Why this should perform better"
+        }}
+    ]
+}}
+
+Be SPECIFIC. Quote actual messages. Give concrete examples. No generic advice."""
+
+    def _build_strategic_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """Build prompt for strategic recommendations"""
+        data_str = json.dumps(campaigns_data, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
+        
+        return f"""You are a strategic growth consultant. Based on these campaign results, provide strategic recommendations.
+
+IMPORTANT: Respond ENTIRELY in English. Focus on STRATEGY, not tactics.
+
+{self._get_context_prompt()}
 
 ## CAMPAIGN DATA:
 {data_str}
 
-## CAMPAIGN CONTENT (subjects, email body, LinkedIn messages):
-{content_str}
+## MESSAGE TEMPLATES:
+{templates_str}
 
-## REQUESTED ANALYSIS:
+## YOUR TASK:
+Provide strategic recommendations to optimize the funnel: Connect → Meeting → Close
 
-Provide a structured JSON analysis with the following sections. ALL VALUES MUST BE IN ENGLISH:
-
-{{
-    "global_summary": {{
-        "best_campaign": "campaign name",
-        "worst_campaign": "campaign name",
-        "general_trend": "short description IN ENGLISH"
-    }},
-    "open_rate_analysis": {{
-        "average": "X%",
-        "best_subject": "email subject",
-        "winning_patterns": ["pattern 1 in English", "pattern 2 in English"],
-        "losing_patterns": ["pattern 1 in English", "pattern 2 in English"]
-    }},
-    "reply_rate_analysis": {{
-        "email_average": "X%",
-        "linkedin_average": "X%",
-        "success_factors": ["success factor in English", "factor 2"],
-        "improvement_points": ["improvement point in English", "point 2"]
-    }},
-    "conversion_analysis": {{
-        "average_rate": "X%",
-        "top_conversion_campaign": "name",
-        "hypotheses": ["hypothesis in English", "hypothesis 2"]
-    }},
-    "identified_patterns": {{
-        "copywriting": ["pattern in English", "pattern 2"],
-        "timing": ["observation in English"],
-        "channel": ["email vs linkedin insight in English"]
-    }},
-    "global_score": {{
-        "score": "X/10",
-        "justification": "short explanation IN ENGLISH"
-    }}
-}}
-
-Reply ONLY with the JSON, no text before or after. ALL TEXT VALUES MUST BE IN ENGLISH."""
-
-    def _build_comparison_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
-        """Build prompt for campaign comparison"""
-        data_str = json.dumps(campaigns_data, indent=2, default=str)
-        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
-        
-        return f"""You are an expert in growth marketing. Compare these outreach campaigns and identify the winners.
-
-IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
-
-## CAMPAIGN DATA:
-{data_str}
-
-## CAMPAIGN CONTENT:
-{content_str}
-
-## REQUESTED COMPARISON:
-
-Provide a structured JSON comparison. ALL VALUES MUST BE IN ENGLISH:
+Provide a JSON response:
 
 {{
-    "ranking": [
+    "funnel_analysis": {{
+        "connection_to_reply": {{
+            "current_rate": "X%",
+            "benchmark": "Industry benchmark",
+            "gap_analysis": "Where we're losing people",
+            "priority": "high/medium/low"
+        }},
+        "reply_to_meeting": {{
+            "estimated_rate": "X%",
+            "bottleneck": "What's preventing conversions",
+            "recommendation": "How to improve"
+        }}
+    }},
+    "channel_strategy": {{
+        "primary_channel": "LinkedIn or Email",
+        "reasoning": "Why this channel should be primary",
+        "channel_mix": "Recommended % split",
+        "sequence_recommendation": "LinkedIn first then Email, or vice versa"
+    }},
+    "audience_insights": {{
+        "best_performing_segment": "Which audience/campaign type works best",
+        "underperforming_segment": "Which to pause or fix",
+        "expansion_opportunity": "New segments to test"
+    }},
+    "90_day_roadmap": {{
+        "month_1": {{
+            "focus": "Main focus area",
+            "actions": ["Action 1", "Action 2", "Action 3"],
+            "expected_outcome": "What success looks like"
+        }},
+        "month_2": {{
+            "focus": "Main focus area",
+            "actions": ["Action 1", "Action 2"],
+            "expected_outcome": "What success looks like"
+        }},
+        "month_3": {{
+            "focus": "Main focus area",
+            "actions": ["Action 1", "Action 2"],
+            "expected_outcome": "What success looks like"
+        }}
+    }},
+    "quick_wins": [
         {{
-            "rank": 1,
-            "campaign": "name",
-            "global_score": "X/100",
-            "strengths": ["strength 1 in English", "strength 2"],
-            "weaknesses": ["weakness in English"]
+            "action": "Specific action to take",
+            "effort": "Low/Medium/High",
+            "impact": "Low/Medium/High",
+            "timeline": "This week / This month"
         }}
     ],
-    "best_email_subject": {{
-        "subject": "the subject",
-        "open_rate": "X%",
-        "why_it_works": "explanation IN ENGLISH"
-    }},
-    "best_email_body": {{
-        "campaign": "name",
-        "reply_rate": "X%",
-        "key_elements": ["element in English", "element 2"]
-    }},
-    "best_linkedin": {{
-        "campaign": "name",
-        "acceptance_rate": "X%",
-        "reply_rate": "X%",
-        "why_it_works": "explanation IN ENGLISH"
-    }},
-    "channel_comparison": {{
-        "email_vs_linkedin": "which channel performs better and why IN ENGLISH",
-        "recommendation": "recommendation IN ENGLISH"
-    }},
-    "conclusion": "summary in 2-3 sentences IN ENGLISH"
+    "campaigns_to_scale": ["Campaign names to increase volume"],
+    "campaigns_to_pause": ["Campaign names to stop or rework"],
+    "final_recommendation": "Your #1 recommendation in 2-3 sentences"
 }}
 
-Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
+Be strategic. Think about the business goal: selling AI Agents to decision makers."""
 
-    def _build_suggestions_prompt(self, campaigns_data: list[dict], campaign_content: dict = None) -> str:
-        """Build prompt for A/B test suggestions"""
+    def _build_ab_test_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """Build prompt for A/B test suggestions with concrete examples"""
         data_str = json.dumps(campaigns_data, indent=2, default=str)
-        content_str = json.dumps(campaign_content, indent=2, default=str) if campaign_content else "Not provided"
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
         
-        return f"""You are an expert in growth marketing and A/B testing. Based on these campaign results, suggest the next tests to run.
+        return f"""You are an A/B testing expert and B2B copywriter. Generate CONCRETE test suggestions with actual message copy.
 
-IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
+IMPORTANT: Respond ENTIRELY in English. Provide ACTUAL MESSAGES to test, not just ideas.
 
-## CURRENT DATA:
+{self._get_context_prompt()}
+
+## CURRENT CAMPAIGN DATA:
 {data_str}
 
-## CURRENT CONTENT:
-{content_str}
+## CURRENT MESSAGES:
+{templates_str}
 
-## REQUESTED SUGGESTIONS:
+## YOUR TASK:
+Generate specific A/B tests with COMPLETE messages ready to use.
+Don't just say "test personalization" - write the actual personalized message.
 
-Provide structured suggestions in JSON. ALL VALUES MUST BE IN ENGLISH:
+Provide a JSON response:
 
 {{
-    "priority_tests": [
+    "priority_test": {{
+        "test_name": "Name of the test",
+        "hypothesis": "If we change X, then Y will improve because Z",
+        "variant_a": {{
+            "name": "Control",
+            "full_message": "Complete message copy for variant A",
+            "channel": "LinkedIn or Email"
+        }},
+        "variant_b": {{
+            "name": "Challenger",
+            "full_message": "Complete message copy for variant B",
+            "channel": "LinkedIn or Email"
+        }},
+        "what_changed": "Specific element being tested",
+        "success_metric": "Reply rate / Acceptance rate / Meeting booked",
+        "sample_size": "X leads per variant",
+        "expected_lift": "X% improvement expected"
+    }},
+    "subject_line_tests": [
         {{
-            "priority": 1,
-            "test_type": "email subject / email body / linkedin message / sequence",
-            "hypothesis": "what we want to test IN ENGLISH",
-            "variant_A": "description or example IN ENGLISH",
-            "variant_B": "description or example IN ENGLISH",
-            "success_metric": "open rate / reply rate / etc",
-            "recommended_sample_size": "X leads minimum",
-            "potential_impact": "low / medium / high"
+            "current_best": "Current best performing subject",
+            "variant_a": "New subject line option A",
+            "variant_b": "New subject line option B", 
+            "variant_c": "New subject line option C",
+            "rationale": "Why these variants could outperform"
         }}
     ],
-    "email_subject_tests": [
+    "linkedin_message_tests": [
         {{
-            "current_subject": "current best",
-            "proposed_variants": ["variant 1 IN ENGLISH", "variant 2", "variant 3"],
-            "rationale": "why these variants IN ENGLISH"
+            "test_name": "What we're testing",
+            "control": {{
+                "message": "Current LinkedIn message",
+                "reply_rate": "X%"
+            }},
+            "variant": {{
+                "message": "New LinkedIn message to test",
+                "change": "What's different"
+            }}
         }}
     ],
     "email_body_tests": [
         {{
-            "element_to_test": "hook / CTA / length / personalization",
-            "description": "what we change IN ENGLISH",
-            "example": "concrete example IN ENGLISH"
+            "test_name": "What we're testing",
+            "control": {{
+                "body": "Current email body",
+                "reply_rate": "X%"
+            }},
+            "variant": {{
+                "body": "New email body to test",
+                "change": "What's different"
+            }}
         }}
     ],
-    "linkedin_tests": [
+    "sequence_tests": [
         {{
-            "element_to_test": "connection message / follow-up / voice note",
-            "description": "what we change IN ENGLISH",
-            "example": "concrete example IN ENGLISH"
+            "test_name": "Sequence structure test",
+            "current_sequence": "Email → LinkedIn → Follow-up",
+            "proposed_sequence": "LinkedIn → Email → Voice note",
+            "rationale": "Why this sequence might work better"
         }}
     ],
-    "testing_roadmap": {{
-        "week_1": "test description IN ENGLISH",
-        "week_2": "test description IN ENGLISH",
-        "week_3": "test description IN ENGLISH",
-        "week_4": "analysis and iteration IN ENGLISH"
-    }},
-    "strategic_advice": "general recommendation in 2-3 sentences IN ENGLISH"
+    "testing_calendar": {{
+        "week_1": "Test to run",
+        "week_2": "Test to run",
+        "week_3": "Test to run",
+        "week_4": "Analyze and iterate"
+    }}
 }}
 
-Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
+Write COMPLETE messages. Be specific. Use the same tone and personalization variables as the current messages."""
 
-    def _build_variants_prompt(self, winning_content: dict, num_variants: int) -> str:
-        """Build prompt for generating content variants"""
-        content_str = json.dumps(winning_content, indent=2, default=str)
+    def _build_chat_prompt(self, question: str, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """Build prompt for free-form chat"""
+        data_str = json.dumps(campaigns_data, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str)
         
-        return f"""You are an expert B2B copywriter. Generate {num_variants} variants of the following winning content, keeping the elements that work.
+        return f"""You are an expert growth marketing consultant. Answer the user's question about their campaigns.
 
-IMPORTANT: Respond ENTIRELY in English. All text values must be in English.
+{self._get_context_prompt()}
+
+## CAMPAIGN PERFORMANCE DATA:
+{data_str}
+
+## MESSAGE TEMPLATES:
+{templates_str}
+
+## USER'S QUESTION:
+{question}
+
+## YOUR TASK:
+Answer the question directly and specifically. Use data from the campaigns to support your answer.
+Be helpful, specific, and actionable. If you're writing new copy, make it complete and ready to use.
+Respond in English."""
+
+    # Keep legacy methods for backward compatibility
+    def analyze_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+        """Legacy method - redirects to analyze_copywriting"""
+        templates = {}
+        if campaign_content:
+            for name, content in campaign_content.items():
+                templates[name] = [content]
+        return self.analyze_copywriting(campaigns_data, templates)
+    
+    def compare_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+        """Legacy method - now part of strategic recommendations"""
+        templates = {}
+        if campaign_content:
+            for name, content in campaign_content.items():
+                templates[name] = [content]
+        return self.get_strategic_recommendations(campaigns_data, templates)
+    
+    def suggest_next_tests(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+        """Legacy method - redirects to generate_ab_tests"""
+        templates = {}
+        if campaign_content:
+            for name, content in campaign_content.items():
+                templates[name] = [content]
+        return self.generate_ab_tests(campaigns_data, templates)
+    
+    def generate_variants(self, winning_content: dict, num_variants: int = 3) -> dict:
+        """Legacy method for generating variants"""
+        prompt = f"""You are an expert B2B copywriter. Generate {num_variants} variants of this winning content.
+
+IMPORTANT: Respond ENTIRELY in English.
 
 ## WINNING CONTENT:
-{content_str}
+{json.dumps(winning_content, indent=2, default=str)}
 
-## REQUESTED VARIANTS:
-
-Generate variants in JSON. ALL VALUES MUST BE IN ENGLISH:
+Generate complete message variants in JSON:
 
 {{
-    "winning_content_analysis": {{
-        "key_elements": ["key element IN ENGLISH", "element 2"],
-        "tone": "tone description IN ENGLISH",
-        "structure": "structure description IN ENGLISH",
-        "effective_hooks": ["effective hook IN ENGLISH", "hook 2"]
-    }},
     "subject_variants": [
-        {{
-            "subject": "new subject IN ENGLISH",
-            "angle": "different angle IN ENGLISH",
-            "rationale": "justification IN ENGLISH"
-        }}
+        {{"subject": "New subject", "angle": "Different angle", "rationale": "Why"}}
     ],
     "email_body_variants": [
-        {{
-            "version": "Version A",
-            "body": "complete email body IN ENGLISH",
-            "main_change": "what changes vs original IN ENGLISH"
-        }}
+        {{"version": "A", "body": "Complete email", "main_change": "What changed"}}
     ],
     "linkedin_variants": [
-        {{
-            "version": "Version A",
-            "message": "complete message IN ENGLISH",
-            "main_change": "what changes IN ENGLISH"
-        }}
-    ],
-    "test_recommendation": "which variant to test first and why IN ENGLISH"
-}}
-
-Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
-
-    def _parse_analysis_response(self, response_text: str) -> dict:
-        """Parse the analysis response from Gemini"""
-        return self._extract_json(response_text)
-    
-    def _parse_comparison_response(self, response_text: str) -> dict:
-        """Parse the comparison response from Gemini"""
-        return self._extract_json(response_text)
-    
-    def _parse_suggestions_response(self, response_text: str) -> dict:
-        """Parse the suggestions response from Gemini"""
-        return self._extract_json(response_text)
-    
-    def _parse_variants_response(self, response_text: str) -> dict:
-        """Parse the variants response from Gemini"""
-        return self._extract_json(response_text)
+        {{"version": "A", "message": "Complete message", "main_change": "What changed"}}
+    ]
+}}"""
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return self._extract_json(response.text)
+        except Exception as e:
+            return {"error": str(e)}
     
     def _extract_json(self, text: str) -> dict:
         """Extract JSON from response text"""
-        # Try to find JSON in the response
         text = text.strip()
         
         # Remove markdown code blocks if present
@@ -349,68 +457,142 @@ Reply ONLY with the JSON. ALL TEXT VALUES MUST BE IN ENGLISH."""
 class MockGeminiAnalyzer:
     """Mock analyzer for testing without API key"""
     
-    def analyze_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
-        return {
-            "global_summary": {
-                "best_campaign": "Demo Campaign A",
-                "worst_campaign": "Demo Campaign C",
-                "general_trend": "Campaigns with personalization perform better"
-            },
-            "open_rate_analysis": {
-                "average": "45%",
-                "best_subject": "{{firstName}} - Quick question",
-                "winning_patterns": ["First name personalization", "Curiosity", "Short (<50 chars)"],
-                "losing_patterns": ["Too promotional", "Excessive caps"]
-            },
-            "reply_rate_analysis": {
-                "email_average": "8%",
-                "linkedin_average": "12%",
-                "success_factors": ["Open question", "Immediate value", "Social proof"],
-                "improvement_points": ["Clearer CTA", "Reduce length"]
-            },
-            "identified_patterns": {
-                "copywriting": ["Precise numbers increase credibility", "Questions engage more"],
-                "timing": ["Tuesday-Thursday perform better"],
-                "channel": ["LinkedIn > Email for C-level decision makers"]
-            },
-            "global_score": {
-                "score": "7/10",
-                "justification": "Good foundation but optimization possible on follow-ups"
-            },
-            "_note": "⚠️ This is a demo analysis. Connect your Gemini API key for real analysis."
-        }
+    def __init__(self, business_context: dict = None):
+        self.business_context = business_context or {}
     
-    def compare_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
-        return {
-            "ranking": [
-                {"rank": 1, "campaign": "Demo A", "global_score": "85/100", "strengths": ["Good open rate", "Clear CTA"]},
-                {"rank": 2, "campaign": "Demo B", "global_score": "72/100", "strengths": ["Personalization"]},
-            ],
-            "conclusion": "Campaign A outperforms thanks to its catchy subject line.",
-            "_note": "⚠️ Demo analysis"
-        }
+    def set_business_context(self, context: dict):
+        self.business_context = context
     
-    def suggest_next_tests(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+    def analyze_copywriting(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
         return {
-            "priority_tests": [
+            "executive_summary": {
+                "main_insight": "Messages with specific pain points get 3x more replies than generic intros",
+                "biggest_opportunity": "LinkedIn connection messages are too long - shorter = better acceptance",
+                "quick_win": "Add a specific number or stat in the first line of emails"
+            },
+            "hook_analysis": {
+                "best_hooks": [
+                    {
+                        "hook": "Noticed {{companyName}} just raised Series A...",
+                        "campaign": "Demo Campaign A",
+                        "reply_rate": "18%",
+                        "why_it_works": "Specific, timely, shows research"
+                    }
+                ],
+                "worst_hooks": [
+                    {
+                        "hook": "Hi, I wanted to reach out...",
+                        "campaign": "Demo Campaign C",
+                        "reply_rate": "2%",
+                        "why_it_fails": "Generic, no value proposition, sounds like spam"
+                    }
+                ],
+                "hook_patterns": ["Specific company research", "Pain point in first line", "Numbers/stats"]
+            },
+            "message_improvements": [
                 {
-                    "priority": 1,
-                    "test_type": "email subject",
-                    "hypothesis": "A subject with precise number increases open rate",
-                    "variant_A": "Current subject",
-                    "variant_B": "{{firstName}}, 3 min to double your replies",
-                    "potential_impact": "high"
+                    "original_message": "Hi {{firstName}}, I wanted to connect...",
+                    "campaign": "Demo Campaign C",
+                    "current_reply_rate": "2%",
+                    "improved_version": "{{firstName}}, saw {{companyName}} is scaling the sales team. When manual processes break at 50+ reps, teams usually lose 10+ hours/week. Worth a quick chat?",
+                    "changes_made": ["Added specific pain point", "Added social proof number", "Clear micro-CTA"],
+                    "expected_improvement": "Should see 3-5x improvement based on pattern analysis"
                 }
             ],
-            "strategic_advice": "Focus on open rate first before optimizing the body.",
-            "_note": "⚠️ Demo suggestions"
+            "_note": "⚠️ Demo analysis. Connect Gemini API for real insights."
         }
+    
+    def get_strategic_recommendations(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        return {
+            "funnel_analysis": {
+                "connection_to_reply": {
+                    "current_rate": "12%",
+                    "benchmark": "15-20% for B2B SaaS",
+                    "gap_analysis": "Messages are too focused on product, not enough on prospect's pain",
+                    "priority": "high"
+                }
+            },
+            "channel_strategy": {
+                "primary_channel": "LinkedIn",
+                "reasoning": "Higher reply rates, decision makers more active",
+                "channel_mix": "70% LinkedIn, 30% Email",
+                "sequence_recommendation": "LinkedIn connection → DM → Email follow-up"
+            },
+            "quick_wins": [
+                {
+                    "action": "Shorten LinkedIn connection messages to <300 chars",
+                    "effort": "Low",
+                    "impact": "High",
+                    "timeline": "This week"
+                }
+            ],
+            "final_recommendation": "Focus on LinkedIn first. Your best campaign proves the channel works. Scale that approach to other audiences.",
+            "_note": "⚠️ Demo recommendations."
+        }
+    
+    def generate_ab_tests(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        return {
+            "priority_test": {
+                "test_name": "Pain Point Hook Test",
+                "hypothesis": "Starting with a specific pain point will increase reply rate by 50%",
+                "variant_a": {
+                    "name": "Control",
+                    "full_message": "Hi {{firstName}}, I noticed {{companyName}} is growing fast. I'd love to connect and share how we help similar companies with AI automation.",
+                    "channel": "LinkedIn"
+                },
+                "variant_b": {
+                    "name": "Pain Point Lead",
+                    "full_message": "{{firstName}}, scaling teams usually means 10+ hours/week lost to manual processes. We built an AI agent that handles the busywork. Worth exploring?",
+                    "channel": "LinkedIn"
+                },
+                "what_changed": "Opening with pain point vs. generic intro",
+                "success_metric": "Reply rate",
+                "sample_size": "100 leads per variant",
+                "expected_lift": "40-60% improvement"
+            },
+            "subject_line_tests": [
+                {
+                    "current_best": "Quick question about {{companyName}}",
+                    "variant_a": "{{firstName}}, 10 hours/week back?",
+                    "variant_b": "AI agents for {{companyName}}",
+                    "variant_c": "Your ops team + AI = ?",
+                    "rationale": "Testing: number-based, direct product mention, curiosity gap"
+                }
+            ],
+            "_note": "⚠️ Demo A/B tests."
+        }
+    
+    def chat(self, question: str, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        return f"""Based on your campaigns, here's my analysis:
+
+**Your question:** {question}
+
+**Demo Response:** This is a demo response. Connect your Gemini API key to get real AI-powered answers about your campaigns.
+
+Your current data shows promising results on LinkedIn with an average reply rate that could be improved by:
+1. Shortening messages
+2. Leading with pain points
+3. Adding specific numbers/stats
+
+Would you like me to rewrite any specific message for you?
+
+⚠️ *This is demo mode. Real analysis requires a Gemini API key.*"""
+    
+    # Legacy methods
+    def analyze_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+        return self.analyze_copywriting(campaigns_data, campaign_content or {})
+    
+    def compare_campaigns(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+        return self.get_strategic_recommendations(campaigns_data, campaign_content or {})
+    
+    def suggest_next_tests(self, campaigns_data: list[dict], campaign_content: dict = None) -> dict:
+        return self.generate_ab_tests(campaigns_data, campaign_content or {})
     
     def generate_variants(self, winning_content: dict, num_variants: int = 3) -> dict:
         return {
             "subject_variants": [
                 {"subject": "{{firstName}}, quick question about {{companyName}}", "angle": "Double personalization"},
-                {"subject": "2 min - idea for {{companyName}}", "angle": "Short time + value"},
+                {"subject": "10 hours/week back for {{companyName}}", "angle": "Specific benefit"},
             ],
             "_note": "⚠️ Demo variants"
         }

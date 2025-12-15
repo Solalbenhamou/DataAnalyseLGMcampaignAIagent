@@ -143,6 +143,39 @@ def render_sidebar():
         
         st.markdown("---")
         
+        # Business Context section
+        st.markdown("### 🎯 Business Context")
+        
+        business_preset = st.selectbox(
+            "Business preset",
+            options=["AI Agent Sales", "Custom"],
+            index=0,
+            help="Select your business type for tailored AI analysis"
+        )
+        
+        if business_preset == "AI Agent Sales":
+            business_context = {
+                "product": "AI Agent",
+                "goal": "Connect with leads → Book meetings → Close deals",
+                "target": "Decision makers (CEOs, CTOs, Founders)",
+                "industry": "B2B SaaS",
+                "additional": ""
+            }
+        else:
+            with st.expander("📝 Custom business context"):
+                business_context = {
+                    "product": st.text_input("Product/Service", value="AI Agent"),
+                    "goal": st.text_input("Goal", value="Connect → Meeting → Close"),
+                    "target": st.text_input("Target ICP", value="Decision makers"),
+                    "industry": st.text_input("Industry", value="B2B SaaS"),
+                    "additional": st.text_area("Additional context", value="", height=80)
+                }
+        
+        # Store business context in session state
+        st.session_state.business_context = business_context
+        
+        st.markdown("---")
+        
         # Demo mode
         st.markdown("### 🎮 Demo Mode")
         demo_mode = st.checkbox(
@@ -156,10 +189,10 @@ def render_sidebar():
         st.markdown("### ℹ️ About")
         st.markdown("""
         **Campaign Analyzer** analyzes your LGM campaigns with AI to:
-        - 📊 Compare performance
-        - 🎯 Identify winning patterns
-        - 💡 Suggest optimizations
-        - 🧪 Propose A/B tests
+        - ✍️ Analyze copywriting patterns
+        - 🎯 Strategic recommendations
+        - 🧪 Generate A/B tests with real messages
+        - 💬 Ask AI anything about your campaigns
         """)
         
         return lgm_api_key, gemini_api_key, demo_mode

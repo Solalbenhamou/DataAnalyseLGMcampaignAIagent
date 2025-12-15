@@ -23,6 +23,11 @@ class CampaignStats:
     linkedin_replied: int = 0
     total_replies: int = 0
     total_conversions: int = 0
+    templates: list = None  # List of message templates with their performance
+    
+    def __post_init__(self):
+        if self.templates is None:
+            self.templates = []
     
     @property
     def open_rate(self) -> float:
@@ -204,6 +209,9 @@ class LGMClient:
         # Get replies stats
         replies = engagement.get("replies", {})
         
+        # Extract templates (message content with performance)
+        templates = self._extract_templates(stats)
+        
         return CampaignStats(
             campaign_id=campaign_id,
             campaign_name=campaign_name,
@@ -216,8 +224,53 @@ class LGMClient:
             linkedin_accepted=relations.get("newRelations", 0) + relations.get("alreadyConnected", 0),
             linkedin_replied=replies.get("linkedinReplied", linkedin_message.get("replied", 0)),
             total_replies=replies.get("replied", engagement.get("replies", {}).get("replied", 0)),
-            total_conversions=engagement.get("converted", 0)
+            total_conversions=engagement.get("converted", 0),
+            templates=templates
         )
+    
+    def _extract_templates(self, stats: dict) -> list[dict]:
+        """Extract message templates from campaign stats"""
+        templates = []
+        
+        # Try to get templates from various possible locations in the response
+        raw_templates = stats.get("templates", [])
+        
+        # Also check in engagementStats
+        if not raw_templates:
+            raw_templates = stats.get("engagementStats", {}).get("templates", [])
+        
+        # Also check for steps/actions which might contain message content
+        steps = stats.get("steps", [])
+        if not raw_templates and steps:
+            for step in steps:
+                actions = step.get("actions", [])
+                for action in actions:
+                    template = {
+                        "name": action.get("name", "Unknown"),
+                        "channel": action.get("channel", "UNKNOWN"),
+                        "description": action.get("description", action.get("body", "")),
+                        "subject": action.get("subject", ""),
+                        "replied_percent": action.get("repliedPercent", 0),
+                        "sent": action.get("sent", 0),
+                        "replied": action.get("replied", 0)
+                    }
+                    if template["description"] or template["subject"]:
+                        templates.append(template)
+        
+        # Parse raw templates if available
+        for t in raw_templates:
+            template = {
+                "name": t.get("name", "Unknown"),
+                "channel": t.get("channel", "UNKNOWN"),
+                "description": t.get("description", t.get("body", "")),
+                "subject": t.get("subject", ""),
+                "replied_percent": t.get("repliedPercent", t.get("replyRate", 0)),
+                "sent": t.get("sent", 0),
+                "replied": t.get("replied", 0)
+            }
+            templates.append(template)
+        
+        return templates
 
 
 class LGMAPIError(Exception):
