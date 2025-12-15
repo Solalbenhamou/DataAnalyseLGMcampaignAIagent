@@ -226,15 +226,17 @@ CAMPAIGN DATA:
 MESSAGE TEMPLATES (subjects and bodies to analyze):
 {templates_str}
 
-SPAM TRIGGER WORDS TO CHECK FOR:
-- Urgency: "Act now", "Limited time", "Urgent", "Immediately", "Don't miss", "Expires", "Hurry"
-- Money: "Free", "Discount", "Save", "Cheap", "Best price", "Cash", "$$", "Lowest price", "Bargain"
-- Promises: "Guarantee", "No risk", "100%", "Promise", "Certified", "Risk-free"
-- Pressure: "Call now", "Apply now", "Order now", "Click here", "Sign up free", "Buy now", "Act immediately"
-- Hype: "Amazing", "Incredible", "Revolutionary", "Breakthrough", "Miracle", "Unbelievable"
-- Suspicious: "No obligation", "No purchase necessary", "Winner", "Congratulations", "You've been selected"
-- Sales-y: "Buy", "Order", "Purchase", "Deal", "Offer", "Promotion", "Special", "Exclusive deal"
-- ALL CAPS words or excessive punctuation (!!!, ???)
+SPAM TRIGGER WORDS TO CHECK FOR (with better alternatives):
+- Urgency: "Act now" → "When you have a moment", "Limited time" → "Currently available", "Urgent" → "Timely", "Immediately" → "At your earliest convenience"
+- Money: "Free" → "Complimentary" or "At no cost", "Discount" → "Reduced rate", "Save" → "Keep more of your budget", "Cheap" → "Cost-effective"
+- Promises: "Guarantee" → "We're confident that", "No risk" → "Low commitment", "100%" → "Fully", "Risk-free" → "You can always change your mind"
+- Pressure: "Click here" → "Learn more at", "Sign up free" → "Get started", "Buy now" → "Explore options", "Order now" → "See how it works"
+- Hype: "Amazing" → "Impressive", "Incredible" → "Notable", "Revolutionary" → "Innovative", "Breakthrough" → "Advancement"
+- Sales-y: "Deal" → "Opportunity", "Offer" → "Option", "Promotion" → "Program", "Exclusive" → "Selected"
+- ALL CAPS words → Use normal case
+- Excessive punctuation (!!!, ???) → Use single punctuation
+
+IMPORTANT: For every spam word you find, provide a CONCRETE replacement showing exactly how to rewrite it in context.
 
 Respond with this exact JSON structure:
 {{
@@ -243,36 +245,43 @@ Respond with this exact JSON structure:
     "spam_words_found": [
         {{
             "campaign": "campaign name",
-            "word_or_phrase": "the spam word found",
+            "word_or_phrase": "the exact spam word/phrase found",
             "location": "subject/body/linkedin message",
             "risk_level": "Low/Medium/High",
-            "why_its_risky": "explanation",
-            "suggested_alternative": "better phrasing"
+            "why_its_risky": "brief explanation",
+            "original_sentence": "The full sentence containing the spam word",
+            "suggested_replacement": "The same sentence rewritten without the spam word"
         }}
     ],
     "subject_line_analysis": [
         {{
             "campaign": "campaign name",
-            "subject": "the subject line",
+            "original_subject": "the current subject line",
             "spam_score": "Low/Medium/High",
             "issues": ["issue 1", "issue 2"],
-            "improved_subject": "rewritten subject without spam triggers"
+            "improved_subject": "complete rewritten subject line"
         }}
     ],
     "body_analysis": [
         {{
             "campaign": "campaign name",
             "spam_score": "Low/Medium/High",
-            "issues_found": ["issue 1", "issue 2"],
-            "recommendations": ["recommendation 1", "recommendation 2"]
+            "issues_found": ["issue 1 with concrete example from the email", "issue 2"],
+            "fix_examples": [
+                {{
+                    "original": "Original problematic sentence",
+                    "fixed": "Rewritten sentence without spam triggers"
+                }}
+            ]
         }}
     ],
     "safe_patterns": ["patterns in your emails that are good for deliverability"],
     "top_recommendations": [
         {{
             "priority": 1,
-            "issue": "string",
-            "fix": "string",
+            "issue": "description of the issue",
+            "example_before": "Current problematic text",
+            "example_after": "Suggested replacement text",
             "impact": "High/Medium/Low"
         }}
     ],

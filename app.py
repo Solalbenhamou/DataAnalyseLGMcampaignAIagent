@@ -687,7 +687,17 @@ def render_spam_results(results: dict):
             with st.expander(f"{risk_emoji} \"{item.get('word_or_phrase', 'N/A')}\" in {item.get('location', 'N/A')} ({item.get('campaign', 'N/A')})"):
                 st.markdown(f"**Risk Level:** {item.get('risk_level', 'N/A')}")
                 st.markdown(f"**Why it's risky:** {item.get('why_its_risky', 'N/A')}")
-                st.success(f"**Suggested Alternative:** {item.get('suggested_alternative', 'N/A')}")
+                
+                # Show before/after if available
+                if item.get("original_sentence"):
+                    st.markdown("**Original:**")
+                    st.code(clean_message_text(item.get("original_sentence", "")), language=None)
+                
+                if item.get("suggested_replacement"):
+                    st.markdown("**Replace with:**")
+                    st.success(clean_message_text(item.get("suggested_replacement", "")))
+                elif item.get("suggested_alternative"):
+                    st.success(f"**Suggested Alternative:** {item.get('suggested_alternative', 'N/A')}")
     else:
         st.success("✅ No major spam triggers detected!")
     
@@ -699,7 +709,9 @@ def render_spam_results(results: dict):
             spam_score = subj.get("spam_score", "Unknown")
             score_emoji = "🔴" if spam_score == "High" else "🟡" if spam_score == "Medium" else "🟢"
             with st.expander(f"{score_emoji} {subj.get('campaign', 'Campaign')} - {spam_score} risk"):
-                st.markdown(f"**Current Subject:** `{subj.get('subject', 'N/A')}`")
+                original = subj.get('original_subject') or subj.get('subject', 'N/A')
+                st.markdown(f"**Current Subject:**")
+                st.error(f"`{original}`")
                 
                 issues = subj.get("issues", [])
                 if issues:
@@ -707,7 +719,8 @@ def render_spam_results(results: dict):
                     for issue in issues:
                         st.markdown(f"- ❌ {issue}")
                 
-                st.success(f"**Improved Subject:** `{subj.get('improved_subject', 'N/A')}`")
+                st.markdown(f"**Improved Subject:**")
+                st.success(f"`{subj.get('improved_subject', 'N/A')}`")
     
     # Body Analysis
     body_analysis = results.get("body_analysis", [])
@@ -723,8 +736,22 @@ def render_spam_results(results: dict):
                     for issue in issues:
                         st.markdown(f"- ❌ {issue}")
                 
+                # Show fix examples with before/after
+                fix_examples = body.get("fix_examples", [])
+                if fix_examples:
+                    st.markdown("**How to fix:**")
+                    for fix in fix_examples:
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.markdown("❌ **Before:**")
+                            st.code(clean_message_text(fix.get("original", "")), language=None)
+                        with col2:
+                            st.markdown("✅ **After:**")
+                            st.code(clean_message_text(fix.get("fixed", "")), language=None)
+                
+                # Fallback to recommendations if no fix_examples
                 recommendations = body.get("recommendations", [])
-                if recommendations:
+                if recommendations and not fix_examples:
                     st.markdown("**Recommendations:**")
                     for rec in recommendations:
                         st.markdown(f"- ✅ {rec}")
@@ -744,7 +771,17 @@ def render_spam_results(results: dict):
             impact = rec.get("impact", "Medium")
             impact_emoji = "🔴" if impact == "High" else "🟡" if impact == "Medium" else "🟢"
             with st.expander(f"#{rec.get('priority', '?')} - {rec.get('issue', 'Issue')} ({impact_emoji} {impact} impact)"):
-                st.markdown(f"**Fix:** {rec.get('fix', 'N/A')}")
+                # Show before/after examples
+                if rec.get("example_before") and rec.get("example_after"):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("❌ **Before:**")
+                        st.code(clean_message_text(rec.get("example_before", "")), language=None)
+                    with col2:
+                        st.markdown("✅ **After:**")
+                        st.code(clean_message_text(rec.get("example_after", "")), language=None)
+                elif rec.get("fix"):
+                    st.markdown(f"**Fix:** {rec.get('fix', 'N/A')}")
 
 
 def render_strategy_results(results: dict):
