@@ -487,7 +487,7 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
         st.info("ℹ️ No message templates found. AI will analyze based on performance data only.")
     
     # New tabs
-    analysis_tabs = st.tabs(["✍️ Copywriting", "🎯 Strategy", "🧪 A/B Tests", "💬 Ask AI"])
+    analysis_tabs = st.tabs(["✍️ Copywriting", "🚨 Spam Analysis", "🎯 Strategy", "🧪 A/B Tests", "💬 Ask AI"])
     
     with analysis_tabs[0]:
         st.markdown("**Deep analysis of your message copywriting**")
@@ -502,6 +502,18 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
             render_copywriting_results(st.session_state.copywriting_results)
     
     with analysis_tabs[1]:
+        st.markdown("**Spam words & deliverability analysis**")
+        st.caption("Check your emails for spam triggers that could hurt deliverability.")
+        
+        if st.button("🚨 Analyze Spam Words", key="spam_btn", type="primary", use_container_width=True):
+            with st.spinner("Analyzing for spam triggers..."):
+                results = analyzer.analyze_spam(campaigns_data, templates_by_campaign)
+                st.session_state.spam_results = results
+        
+        if 'spam_results' in st.session_state:
+            render_spam_results(st.session_state.spam_results)
+    
+    with analysis_tabs[2]:
         st.markdown("**Strategic recommendations for your funnel**")
         st.caption("Channel strategy, audience insights, and 90-day roadmap.")
         
@@ -513,7 +525,7 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
         if 'strategy_results' in st.session_state:
             render_strategy_results(st.session_state.strategy_results)
     
-    with analysis_tabs[2]:
+    with analysis_tabs[3]:
         st.markdown("**Concrete A/B tests with ready-to-use messages**")
         st.caption("Not just ideas - actual messages you can copy and test.")
         
@@ -525,7 +537,7 @@ def render_ai_analysis(analyzer, stats_list: list[CampaignStats], campaign_conte
         if 'ab_results' in st.session_state:
             render_ab_test_results(st.session_state.ab_results)
     
-    with analysis_tabs[3]:
+    with analysis_tabs[4]:
         st.markdown("**Ask anything about your campaigns**")
         st.caption("Get specific answers, rewrite messages, or dive deeper into any topic.")
         
@@ -573,52 +585,6 @@ def render_copywriting_results(results: dict):
             st.warning(f"**Biggest Opportunity:**\n{summary.get('biggest_opportunity', 'N/A')}")
         with col3:
             st.success(f"**Quick Win:**\n{summary.get('quick_win', 'N/A')}")
-    
-    # Spam Analysis
-    if "spam_analysis" in results:
-        st.markdown("#### 🚨 Spam Words Analysis")
-        spam = results["spam_analysis"]
-        
-        # Overall risk indicator
-        risk = spam.get("overall_spam_risk", "Unknown")
-        if risk == "High":
-            st.error(f"⚠️ **Overall Spam Risk: {risk}** - Your emails may land in spam folders!")
-        elif risk == "Medium":
-            st.warning(f"⚡ **Overall Spam Risk: {risk}** - Some improvements needed")
-        else:
-            st.success(f"✅ **Overall Spam Risk: {risk}** - Good deliverability expected")
-        
-        # Spam words found
-        spam_words = spam.get("spam_words_found", [])
-        if spam_words:
-            st.markdown("**🔍 Spam Triggers Found:**")
-            for item in spam_words:
-                risk_emoji = "🔴" if item.get("risk_level") == "High" else "🟡" if item.get("risk_level") == "Medium" else "🟢"
-                with st.expander(f"{risk_emoji} \"{item.get('word_or_phrase', 'N/A')}\" in {item.get('location', 'N/A')} ({item.get('campaign', 'N/A')})"):
-                    st.markdown(f"**Risk Level:** {item.get('risk_level', 'N/A')}")
-                    st.markdown(f"**Suggestion:** {item.get('suggestion', 'N/A')}")
-        else:
-            st.success("✅ No major spam triggers detected!")
-        
-        # Subject line risks
-        subject_risks = spam.get("subject_line_risks", [])
-        if subject_risks:
-            st.markdown("**📧 Subject Line Improvements:**")
-            for subj in subject_risks:
-                with st.expander(f"📝 {subj.get('campaign', 'Campaign')}"):
-                    st.markdown(f"**Current:** `{subj.get('subject', 'N/A')}`")
-                    if subj.get("issues"):
-                        st.markdown("**Issues:**")
-                        for issue in subj.get("issues", []):
-                            st.markdown(f"- ❌ {issue}")
-                    st.markdown(f"**Improved:** `{subj.get('improved_subject', 'N/A')}`")
-        
-        # Recommendations
-        recommendations = spam.get("recommendations", [])
-        if recommendations:
-            st.markdown("**💡 Deliverability Recommendations:**")
-            for rec in recommendations:
-                st.markdown(f"- {rec}")
     
     # Hook Analysis
     if "hook_analysis" in results:
@@ -680,6 +646,105 @@ def render_copywriting_results(results: dict):
                     st.markdown("**Changes Made:**")
                     for change in improvement["changes_made"]:
                         st.markdown(f"- {change}")
+
+
+def render_spam_results(results: dict):
+    """Render spam analysis results"""
+    if "error" in results:
+        st.error(f"Analysis error: {results['error']}")
+        if "raw_response" in results and results["raw_response"]:
+            with st.expander("🔍 View raw AI response (for debugging)"):
+                st.code(results["raw_response"])
+        return
+    
+    if "_note" in results:
+        st.warning(results["_note"])
+    
+    # Overall Risk & Score
+    col1, col2 = st.columns(2)
+    with col1:
+        risk = results.get("overall_spam_risk", "Unknown")
+        if risk == "High":
+            st.error(f"⚠️ **Overall Spam Risk: {risk}**")
+        elif risk == "Medium":
+            st.warning(f"⚡ **Overall Spam Risk: {risk}**")
+        else:
+            st.success(f"✅ **Overall Spam Risk: {risk}**")
+    with col2:
+        score = results.get("deliverability_score", "N/A")
+        st.metric("Deliverability Score", score)
+    
+    # Overall Summary
+    if results.get("overall_summary"):
+        st.info(f"📋 **Summary:** {results['overall_summary']}")
+    
+    # Spam Words Found
+    spam_words = results.get("spam_words_found", [])
+    if spam_words:
+        st.markdown("#### 🔍 Spam Triggers Found")
+        for item in spam_words:
+            risk_emoji = "🔴" if item.get("risk_level") == "High" else "🟡" if item.get("risk_level") == "Medium" else "🟢"
+            with st.expander(f"{risk_emoji} \"{item.get('word_or_phrase', 'N/A')}\" in {item.get('location', 'N/A')} ({item.get('campaign', 'N/A')})"):
+                st.markdown(f"**Risk Level:** {item.get('risk_level', 'N/A')}")
+                st.markdown(f"**Why it's risky:** {item.get('why_its_risky', 'N/A')}")
+                st.success(f"**Suggested Alternative:** {item.get('suggested_alternative', 'N/A')}")
+    else:
+        st.success("✅ No major spam triggers detected!")
+    
+    # Subject Line Analysis
+    subject_analysis = results.get("subject_line_analysis", [])
+    if subject_analysis:
+        st.markdown("#### 📧 Subject Line Analysis")
+        for subj in subject_analysis:
+            spam_score = subj.get("spam_score", "Unknown")
+            score_emoji = "🔴" if spam_score == "High" else "🟡" if spam_score == "Medium" else "🟢"
+            with st.expander(f"{score_emoji} {subj.get('campaign', 'Campaign')} - {spam_score} risk"):
+                st.markdown(f"**Current Subject:** `{subj.get('subject', 'N/A')}`")
+                
+                issues = subj.get("issues", [])
+                if issues:
+                    st.markdown("**Issues:**")
+                    for issue in issues:
+                        st.markdown(f"- ❌ {issue}")
+                
+                st.success(f"**Improved Subject:** `{subj.get('improved_subject', 'N/A')}`")
+    
+    # Body Analysis
+    body_analysis = results.get("body_analysis", [])
+    if body_analysis:
+        st.markdown("#### 📝 Email Body Analysis")
+        for body in body_analysis:
+            spam_score = body.get("spam_score", "Unknown")
+            score_emoji = "🔴" if spam_score == "High" else "🟡" if spam_score == "Medium" else "🟢"
+            with st.expander(f"{score_emoji} {body.get('campaign', 'Campaign')} - {spam_score} risk"):
+                issues = body.get("issues_found", [])
+                if issues:
+                    st.markdown("**Issues Found:**")
+                    for issue in issues:
+                        st.markdown(f"- ❌ {issue}")
+                
+                recommendations = body.get("recommendations", [])
+                if recommendations:
+                    st.markdown("**Recommendations:**")
+                    for rec in recommendations:
+                        st.markdown(f"- ✅ {rec}")
+    
+    # Safe Patterns
+    safe_patterns = results.get("safe_patterns", [])
+    if safe_patterns:
+        st.markdown("#### ✅ What You're Doing Well")
+        for pattern in safe_patterns:
+            st.markdown(f"- 👍 {pattern}")
+    
+    # Top Recommendations
+    top_recs = results.get("top_recommendations", [])
+    if top_recs:
+        st.markdown("#### 🎯 Top Priority Fixes")
+        for rec in top_recs:
+            impact = rec.get("impact", "Medium")
+            impact_emoji = "🔴" if impact == "High" else "🟡" if impact == "Medium" else "🟢"
+            with st.expander(f"#{rec.get('priority', '?')} - {rec.get('issue', 'Issue')} ({impact_emoji} {impact} impact)"):
+                st.markdown(f"**Fix:** {rec.get('fix', 'N/A')}")
 
 
 def render_strategy_results(results: dict):

@@ -71,6 +71,18 @@ class GeminiAnalyzer:
         except Exception as e:
             return {"error": str(e), "raw_response": None}
     
+    def analyze_spam(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        """
+        Dedicated spam words analysis for email deliverability
+        """
+        prompt = self._build_spam_prompt(campaigns_data, templates_by_campaign)
+        
+        try:
+            response = self.model.generate_content(prompt)
+            return self._extract_json(response.text)
+        except Exception as e:
+            return {"error": str(e), "raw_response": None}
+    
     def generate_ab_tests(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
         """
         Generate concrete A/B test suggestions with actual message examples
@@ -111,14 +123,14 @@ CAMPAIGN DATA:
 MESSAGE TEMPLATES:
 {templates_str}
 
-COMMON SPAM TRIGGER WORDS TO CHECK FOR:
-- Urgency: "Act now", "Limited time", "Urgent", "Immediately", "Don't miss"
-- Money: "Free", "Discount", "Save", "Cheap", "Best price", "Cash", "$$"
-- Promises: "Guarantee", "No risk", "100%", "Promise", "Certified"
-- Pressure: "Call now", "Apply now", "Order now", "Click here", "Sign up free"
-- Hype: "Amazing", "Incredible", "Revolutionary", "Breakthrough", "Miracle"
-- Suspicious: "No obligation", "No purchase necessary", "Winner", "Congratulations"
-- Sales-y: "Buy", "Order", "Purchase", "Deal", "Offer", "Promotion"
+IMPORTANT FOR MESSAGE IMPROVEMENTS:
+When writing improved versions of messages, make sure to AVOID spam trigger words like:
+- Urgency words: "Act now", "Limited time", "Urgent", "Immediately"
+- Money words: "Free", "Discount", "Save", "Cheap", "$$"
+- Promise words: "Guarantee", "No risk", "100%"
+- Pressure words: "Click here", "Sign up free", "Order now"
+- Hype words: "Amazing", "Incredible", "Revolutionary"
+Write professional, conversational messages that won't trigger spam filters.
 
 Respond with this exact JSON structure:
 {{
@@ -126,28 +138,6 @@ Respond with this exact JSON structure:
         "main_insight": "string",
         "biggest_opportunity": "string",
         "quick_win": "string"
-    }},
-    "spam_analysis": {{
-        "overall_spam_risk": "Low/Medium/High",
-        "spam_words_found": [
-            {{
-                "campaign": "campaign name",
-                "word_or_phrase": "the spam word found",
-                "location": "subject/body/linkedin message",
-                "risk_level": "Low/Medium/High",
-                "suggestion": "alternative phrasing"
-            }}
-        ],
-        "subject_line_risks": [
-            {{
-                "campaign": "campaign name",
-                "subject": "the subject line",
-                "issues": ["issue 1", "issue 2"],
-                "improved_subject": "rewritten subject without spam triggers"
-            }}
-        ],
-        "safe_patterns": ["patterns that are working well and not triggering spam"],
-        "recommendations": ["specific recommendations to improve deliverability"]
     }},
     "hook_analysis": {{
         "best_hooks": [
@@ -168,7 +158,7 @@ Respond with this exact JSON structure:
             "original_message": "string",
             "campaign": "string",
             "current_reply_rate": "string",
-            "improved_version": "string",
+            "improved_version": "string (must be spam-free)",
             "changes_made": ["string"],
             "expected_improvement": "string"
         }}
@@ -219,6 +209,74 @@ Respond with this exact JSON structure:
     "campaigns_to_scale": ["string"],
     "campaigns_to_pause": ["string"],
     "final_recommendation": "string"
+}}
+
+IMPORTANT: Output ONLY the JSON object. No markdown, no explanation, no code blocks. Just the raw JSON."""
+
+    def _build_spam_prompt(self, campaigns_data: list[dict], templates_by_campaign: dict) -> str:
+        """Build prompt for spam words analysis"""
+        data_str = json.dumps(campaigns_data, indent=2, default=str)
+        templates_str = json.dumps(templates_by_campaign, indent=2, default=str) if templates_by_campaign else "No templates available"
+        
+        return f"""Analyze these email campaigns for spam trigger words and deliverability issues. Respond ONLY with valid JSON.
+
+CAMPAIGN DATA:
+{data_str}
+
+MESSAGE TEMPLATES (subjects and bodies to analyze):
+{templates_str}
+
+SPAM TRIGGER WORDS TO CHECK FOR:
+- Urgency: "Act now", "Limited time", "Urgent", "Immediately", "Don't miss", "Expires", "Hurry"
+- Money: "Free", "Discount", "Save", "Cheap", "Best price", "Cash", "$$", "Lowest price", "Bargain"
+- Promises: "Guarantee", "No risk", "100%", "Promise", "Certified", "Risk-free"
+- Pressure: "Call now", "Apply now", "Order now", "Click here", "Sign up free", "Buy now", "Act immediately"
+- Hype: "Amazing", "Incredible", "Revolutionary", "Breakthrough", "Miracle", "Unbelievable"
+- Suspicious: "No obligation", "No purchase necessary", "Winner", "Congratulations", "You've been selected"
+- Sales-y: "Buy", "Order", "Purchase", "Deal", "Offer", "Promotion", "Special", "Exclusive deal"
+- ALL CAPS words or excessive punctuation (!!!, ???)
+
+Respond with this exact JSON structure:
+{{
+    "overall_spam_risk": "Low/Medium/High",
+    "deliverability_score": "X/10",
+    "spam_words_found": [
+        {{
+            "campaign": "campaign name",
+            "word_or_phrase": "the spam word found",
+            "location": "subject/body/linkedin message",
+            "risk_level": "Low/Medium/High",
+            "why_its_risky": "explanation",
+            "suggested_alternative": "better phrasing"
+        }}
+    ],
+    "subject_line_analysis": [
+        {{
+            "campaign": "campaign name",
+            "subject": "the subject line",
+            "spam_score": "Low/Medium/High",
+            "issues": ["issue 1", "issue 2"],
+            "improved_subject": "rewritten subject without spam triggers"
+        }}
+    ],
+    "body_analysis": [
+        {{
+            "campaign": "campaign name",
+            "spam_score": "Low/Medium/High",
+            "issues_found": ["issue 1", "issue 2"],
+            "recommendations": ["recommendation 1", "recommendation 2"]
+        }}
+    ],
+    "safe_patterns": ["patterns in your emails that are good for deliverability"],
+    "top_recommendations": [
+        {{
+            "priority": 1,
+            "issue": "string",
+            "fix": "string",
+            "impact": "High/Medium/Low"
+        }}
+    ],
+    "overall_summary": "string summarizing the spam analysis"
 }}
 
 IMPORTANT: Output ONLY the JSON object. No markdown, no explanation, no code blocks. Just the raw JSON."""
@@ -475,6 +533,58 @@ class MockGeminiAnalyzer:
             ],
             "final_recommendation": "Focus on LinkedIn first. Your best campaign proves the channel works. Scale that approach to other audiences.",
             "_note": "⚠️ Demo recommendations."
+        }
+    
+    def analyze_spam(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
+        return {
+            "overall_spam_risk": "Medium",
+            "deliverability_score": "7/10",
+            "spam_words_found": [
+                {
+                    "campaign": "Demo Campaign A",
+                    "word_or_phrase": "Free",
+                    "location": "subject",
+                    "risk_level": "High",
+                    "why_its_risky": "One of the most common spam triggers",
+                    "suggested_alternative": "Complimentary or 'at no cost'"
+                },
+                {
+                    "campaign": "Demo Campaign B",
+                    "word_or_phrase": "Act now",
+                    "location": "body",
+                    "risk_level": "Medium",
+                    "why_its_risky": "Creates artificial urgency",
+                    "suggested_alternative": "When you have a moment"
+                }
+            ],
+            "subject_line_analysis": [
+                {
+                    "campaign": "Demo Campaign A",
+                    "subject": "Free guide for {{companyName}}",
+                    "spam_score": "High",
+                    "issues": ["Contains 'Free'", "Too promotional"],
+                    "improved_subject": "Quick resource for {{companyName}}'s growth"
+                }
+            ],
+            "body_analysis": [
+                {
+                    "campaign": "Demo Campaign A",
+                    "spam_score": "Medium",
+                    "issues_found": ["Contains urgency language", "Multiple CTAs"],
+                    "recommendations": ["Remove 'Act now'", "Use single clear CTA"]
+                }
+            ],
+            "safe_patterns": ["Personalization with {{firstName}}", "Short paragraphs", "Conversational tone"],
+            "top_recommendations": [
+                {
+                    "priority": 1,
+                    "issue": "Subject line contains 'Free'",
+                    "fix": "Replace with 'Complimentary' or remove entirely",
+                    "impact": "High"
+                }
+            ],
+            "overall_summary": "Your emails have moderate spam risk. Main issues are urgency words and promotional language in subjects.",
+            "_note": "⚠️ Demo spam analysis."
         }
     
     def generate_ab_tests(self, campaigns_data: list[dict], templates_by_campaign: dict) -> dict:
